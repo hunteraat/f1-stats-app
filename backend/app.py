@@ -12,6 +12,7 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///f1_data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+pointsDic = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
 
 # Database Models
 class Driver(db.Model):
@@ -309,7 +310,7 @@ def sync_f1_data(year):
                     
                     # Fetch position data for this driver and session
                     try:
-                        position_response = requests.get(f"{OPENF1_BASE_URL}/position", 
+                        position_response = requests.get(f"{OPENF1_BASE_URL}/position",
                                                        params={
                                                            'session_key': session_data['session_key'],
                                                            'driver_number': driver_number
@@ -340,6 +341,7 @@ def sync_f1_data(year):
                                     final_position = pos['position']
                             
                             driver_session.final_position = final_position
+                            driver_session.points = pointsDic.get(final_position,0)
                         
                     except requests.RequestException as e:
                         print(f"Failed to fetch position data for driver {driver_number} in session {session_data['session_key']}: {e}")

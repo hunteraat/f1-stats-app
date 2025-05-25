@@ -131,10 +131,6 @@ function App() {
     initializeApp();
   }, []);
 
-  if (loading && !drivers.length) {
-    return <div className="loading">🏎️ Loading F1 data...</div>;
-  }
-
   return (
     <div className="App">
       <Header 
