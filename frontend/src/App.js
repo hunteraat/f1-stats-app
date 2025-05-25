@@ -10,7 +10,7 @@ import { ApiService } from './services/ApiService';
 import './App.css';
 
 function App() {
-  const [selectedYear, setSelectedYear] = useState(2024);
+  const [selectedYear, setSelectedYear] = useState(2025);
   const [availableYears, setAvailableYears] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [sessions, setSessions] = useState([]);

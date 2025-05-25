@@ -502,3 +502,182 @@ body {
     font-size: 0.9rem;
   }
 }
+
+/* Year Selector */
+.year-selector {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.year-label {
+  display: inline-block;
+  margin-right: 1rem;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+.year-select {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.year-select option {
+  background: #1e3c72;
+  color: white;
+}
+
+.sync-status {
+  margin-top: 0.5rem;
+}
+
+.sync-indicator {
+  color: #ffd700;
+  font-size: 0.9rem;
+}
+
+/* Driver Images */
+.driver-image {
+  text-align: center;
+}
+
+.achievements {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.wins, .podiums {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.stats-row {
+  margin-bottom: 0.5rem;
+}
+
+/* Driver Details */
+.driver-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sessions-table tr.selected {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.position-timeline {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.positions-chart {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.position-point {
+  text-align: center;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  min-width: 80px;
+}
+
+.position-point small {
+  display: block;
+  margin-bottom: 0.3rem;
+  opacity: 0.8;
+}
+
+/* Sessions Overview */
+.sessions-overview {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.sessions-overview p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.weekend-group {
+  margin-bottom: 3rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.weekend-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.weekend-header h3 {
+  color: #ffd700;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.weekend-sessions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.error-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-icon {
+  font-size: 1.2rem;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.error-dismiss:hover {
+  opacity: 0.7;
+}
+
+/* Controls Section */
+.controls-section {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}

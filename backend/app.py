@@ -422,20 +422,21 @@ def get_stats_summary():
 
 @app.route('/api/database/reset', methods=['POST'])
 def reset_database():
-    try:
-        # Drop all tables and recreate them
-        db.drop_all()
-        db.create_all()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Database reset successfully'
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': f'Failed to reset database: {str(e)}'
-        }), 500
+    with app.app_context():
+        try:
+            # Drop all tables and recreate them
+            db.drop_all()
+            db.create_all()
+            
+            return jsonify({
+                'success': True,
+                'message': 'Database reset successfully'
+            })
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f'Failed to reset database: {str(e)}'
+            }), 500
 
 # Initialize database
 with app.app_context():
@@ -443,3 +444,4 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+    #reset_database()
