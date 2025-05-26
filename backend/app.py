@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import requests
 import json
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -13,8 +14,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///f1_data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 pointsDic = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
+sprintPointsDic = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1}
 
-# Database Models
+# Database Models (keeping the same models as before)
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     driver_number = db.Column(db.Integer, unique=True, nullable=False)
@@ -25,7 +27,6 @@ class Driver(db.Model):
     headshot_url = db.Column(db.String(255), nullable=True)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship to sessions
     sessions = db.relationship('DriverSession', back_populates='driver', cascade='all, delete-orphan')
 
 class Session(db.Model):
@@ -42,7 +43,6 @@ class Session(db.Model):
     circuit_short_name = db.Column(db.String(50), nullable=True)
     year = db.Column(db.Integer, nullable=False)
     
-    # Relationship to driver sessions
     driver_sessions = db.relationship('DriverSession', back_populates='session', cascade='all, delete-orphan')
 
 class DriverSession(db.Model):
@@ -50,14 +50,11 @@ class DriverSession(db.Model):
     driver_id = db.Column(db.Integer, db.ForeignKey('driver.id'), nullable=False)
     session_id = db.Column(db.Integer, db.ForeignKey('session.id'), nullable=False)
     final_position = db.Column(db.Integer, nullable=True)
-    points = db.Column(db.Float, nullable=True)
     
-    # Relationships
     driver = db.relationship('Driver', back_populates='sessions')
     session = db.relationship('Session', back_populates='driver_sessions')
     positions = db.relationship('Position', back_populates='driver_session', cascade='all, delete-orphan')
     
-    # Unique constraint to prevent duplicate driver-session combinations
     __table_args__ = (db.UniqueConstraint('driver_id', 'session_id'),)
 
 class Position(db.Model):
@@ -66,11 +63,9 @@ class Position(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     position = db.Column(db.Integer, nullable=False)
     
-    # Relationship
     driver_session = db.relationship('DriverSession', back_populates='positions')
 
 class YearData(db.Model):
-    """Track which years have been synced to avoid re-downloading"""
     id = db.Column(db.Integer, primary_key=True)
     year = db.Column(db.Integer, unique=True, nullable=False)
     last_synced = db.Column(db.DateTime, default=datetime.utcnow)
@@ -79,6 +74,30 @@ class YearData(db.Model):
 
 # OpenF1 API base URL
 OPENF1_BASE_URL = "https://api.openf1.org/v1"
+
+def make_api_request_with_retry(url, params=None, max_retries=3, delay=1):
+    """Make API request with retry logic and rate limiting"""
+    for attempt in range(max_retries):
+        try:
+            time.sleep(delay)  # Add delay between requests to avoid rate limiting
+            response = requests.get(url, params=params, timeout=30)
+            
+            if response.status_code == 429:  # Rate limited
+                wait_time = min(2 ** attempt, 10)  # Exponential backoff, max 10 seconds
+                print(f"Rate limited, waiting {wait_time} seconds...")
+                time.sleep(wait_time)
+                continue
+                
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.RequestException as e:
+            if attempt == max_retries - 1:
+                raise e
+            print(f"Request failed (attempt {attempt + 1}), retrying in {delay * (attempt + 1)} seconds...")
+            time.sleep(delay * (attempt + 1))
+    
+    return None
 
 @app.route('/')
 def home():
@@ -107,22 +126,64 @@ def get_drivers():
     year = request.args.get('year', type=int)
     
     if year:
-        # Filter drivers by sessions in the specified year
         drivers = db.session.query(Driver).join(DriverSession).join(Session).filter(Session.year == year).distinct().all()
     else:
         drivers = Driver.query.all()
     
-    drivers_data = []
+    # First, calculate total points for all drivers to determine standings
+    drivers_points = []
     for driver in drivers:
-        # Calculate stats for the driver
         if year:
             sessions = [ds for ds in driver.sessions if ds.session.year == year]
+            race_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Race' and ds.final_position is not None]
+            sprint_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Sprint' and ds.final_position is not None]
+            
+            total_points = 0
+            for ds in race_sessions:
+                if ds.final_position in pointsDic:
+                    total_points += pointsDic[ds.final_position]
+            
+            for ds in sprint_sessions:
+                if ds.final_position in sprintPointsDic:
+                    total_points += sprintPointsDic[ds.final_position]
+            
+            drivers_points.append((driver, total_points))
         else:
             sessions = driver.sessions
+            race_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Race' and ds.final_position is not None]
+            sprint_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Sprint' and ds.final_position is not None]
             
-        # Calculate wins and podiums
-        wins = sum(1 for ds in sessions if ds.final_position == 1)
-        podiums = sum(1 for ds in sessions if ds.final_position and ds.final_position <= 3)
+            total_points = 0
+            for ds in race_sessions:
+                if ds.final_position in pointsDic:
+                    total_points += pointsDic[ds.final_position]
+            
+            for ds in sprint_sessions:
+                if ds.final_position in sprintPointsDic:
+                    total_points += sprintPointsDic[ds.final_position]
+            
+            drivers_points.append((driver, total_points))
+    
+    # Sort drivers by points to determine standings
+    drivers_points.sort(key=lambda x: x[1], reverse=True)
+    standings = {driver: pos+1 for pos, (driver, _) in enumerate(drivers_points)}
+    
+    drivers_data = []
+    for driver, total_points in drivers_points:
+        if year:
+            sessions = [ds for ds in driver.sessions if ds.session.year == year]
+            race_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Race' and ds.final_position is not None]
+            sprint_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Sprint' and ds.final_position is not None]
+            
+            # Calculate wins and podiums from race sessions only
+            wins = sum(1 for ds in race_sessions if ds.final_position == 1)
+            podiums = sum(1 for ds in race_sessions if ds.final_position <= 3)
+        else:
+            sessions = driver.sessions
+            race_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Race' and ds.final_position is not None]
+            sprint_sessions = [ds for ds in sessions if ds.session.session_type == 'Race' and ds.session.session_name == 'Sprint' and ds.final_position is not None]
+            wins = sum(1 for ds in race_sessions if ds.final_position == 1)
+            podiums = sum(1 for ds in race_sessions if ds.final_position <= 3)
         
         drivers_data.append({
             'id': driver.id,
@@ -134,8 +195,11 @@ def get_drivers():
             'headshot_url': driver.headshot_url,
             'last_updated': driver.last_updated.isoformat() if driver.last_updated else None,
             'session_count': len(sessions),
+            'race_count': len(race_sessions),
             'wins': wins,
-            'podiums': podiums
+            'podiums': podiums,
+            'points': total_points,
+            'standing_position': standings[driver]
         })
     
     return jsonify(drivers_data)
@@ -153,17 +217,26 @@ def get_driver_sessions(driver_id):
     
     for ds in driver_sessions:
         session = ds.session
+        # Calculate points based on session type
+        points = 0
+        if ds.final_position:
+            if session.session_name == 'Race' and ds.final_position in pointsDic:
+                points = pointsDic[ds.final_position]
+            elif session.session_name == 'Sprint' and ds.final_position in sprintPointsDic:
+                points = sprintPointsDic[ds.final_position]
+        
         sessions_data.append({
             'id': ds.id,
             'session_key': session.session_key,
             'session_name': session.session_name,
+            'session_type': session.session_type,
             'date_start': session.date_start.isoformat() if session.date_start else None,
             'location': session.location,
             'country_name': session.country_name,
             'circuit_short_name': session.circuit_short_name,
             'year': session.year,
             'final_position': ds.final_position,
-            'points': ds.points
+            'points': points
         })
     
     return jsonify({
@@ -230,13 +303,11 @@ def sync_f1_data(year):
                 'year': year
             })
         
-        print(f"Starting F1 data sync for year {year}...")
+        print(f"Starting optimized F1 data sync for year {year}...")
         
-        # Fetch sessions for the year first
-        sessions_response = requests.get(f"{OPENF1_BASE_URL}/sessions", 
-                                       params={'year': year})
-        sessions_response.raise_for_status()
-        sessions_data = sessions_response.json()
+        # STEP 1: Fetch all sessions for the year (single API call)
+        print("Fetching sessions...")
+        sessions_data = make_api_request_with_retry(f"{OPENF1_BASE_URL}/sessions", {'year': year})
         
         if not sessions_data:
             return jsonify({
@@ -246,10 +317,75 @@ def sync_f1_data(year):
         
         print(f"Fetched {len(sessions_data)} sessions for {year}")
         
-        # Process sessions
+        # STEP 2: Fetch drivers for each session in batches
+        print("Fetching drivers...")
+        all_drivers_data = []
+        session_keys = [session['session_key'] for session in sessions_data]
+        
+        # Process in batches to avoid too many requests
+        for i in range(0, len(session_keys), 5):  # Process 5 sessions at a time
+            batch_keys = session_keys[i:i+5]
+            for session_key in batch_keys:
+                try:
+                    session_drivers = make_api_request_with_retry(
+                        f"{OPENF1_BASE_URL}/drivers", 
+                        {'session_key': session_key}
+                    )
+                    if session_drivers:
+                        all_drivers_data.extend(session_drivers)
+                except Exception as e:
+                    print(f"Failed to fetch drivers for session {session_key}: {e}")
+                    continue
+        
+        # Remove duplicates based on driver_number
+        unique_drivers = {}
+        for driver in all_drivers_data:
+            driver_num = driver.get('driver_number')
+            if driver_num and driver_num not in unique_drivers:
+                unique_drivers[driver_num] = driver
+        all_drivers_data = list(unique_drivers.values())
+        
+        print(f"Fetched {len(all_drivers_data)} unique drivers")
+        
+        # STEP 3: Fetch position data for each session
+        print("Fetching position data...")
+        all_positions_data = []
+        
+        for i in range(0, len(session_keys), 5):  # Process 5 sessions at a time
+            batch_keys = session_keys[i:i+5]
+            for session_key in batch_keys:
+                try:
+                    session_positions = make_api_request_with_retry(
+                        f"{OPENF1_BASE_URL}/position",
+                        {'session_key': session_key}
+                    )
+                    if session_positions:
+                        all_positions_data.extend(session_positions)
+                except Exception as e:
+                    print(f"Failed to fetch positions for session {session_key}: {e}")
+                    continue
+        
+        print(f"Fetched {len(all_positions_data)} position records")
+        
+        # STEP 4: Process and store data
         sessions_processed = 0
         drivers_encountered = set()
         
+        # Create driver lookup
+        driver_lookup = {d['driver_number']: d for d in all_drivers_data}
+        
+        # Group positions by session_key and driver_number for efficient lookup
+        positions_by_session_driver = {}
+        for pos in all_positions_data:
+            session_key = pos.get('session_key')
+            driver_number = pos.get('driver_number')
+            if session_key and driver_number:
+                key = (session_key, driver_number)
+                if key not in positions_by_session_driver:
+                    positions_by_session_driver[key] = []
+                positions_by_session_driver[key].append(pos)
+        
+        # Process sessions
         for session_data in sessions_data:
             session = Session.query.filter_by(session_key=session_data['session_key']).first()
             
@@ -270,86 +406,65 @@ def sync_f1_data(year):
             session.circuit_short_name = session_data.get('circuit_short_name', '')
             session.year = year
             
-            # Fetch drivers for this session
-            try:
-                drivers_response = requests.get(f"{OPENF1_BASE_URL}/drivers", 
-                                              params={'session_key': session_data['session_key']})
-                drivers_response.raise_for_status()
-                session_drivers = drivers_response.json()
+            # Process drivers for this session
+            for driver_number, driver_data in driver_lookup.items():
+                drivers_encountered.add(driver_number)
                 
-                for driver_data in session_drivers:
-                    driver_number = driver_data['driver_number']
-                    drivers_encountered.add(driver_number)
-                    
-                    # Get or create driver
-                    driver = Driver.query.filter_by(driver_number=driver_number).first()
-                    if not driver:
-                        driver = Driver(driver_number=driver_number)
-                        db.session.add(driver)
-                    
-                    # Update driver information
-                    driver.full_name = driver_data.get('full_name', '')
-                    driver.team_name = driver_data.get('team_name', '')
-                    driver.team_colour = driver_data.get('team_colour', '')
-                    driver.country_code = driver_data.get('country_code', '')
-                    driver.headshot_url = driver_data.get('headshot_url', '')
-                    driver.last_updated = datetime.utcnow()
-                    
-                    # Create or update driver session
-                    driver_session = DriverSession.query.filter_by(
-                        driver_id=driver.id, 
+                # Get or create driver
+                driver = Driver.query.filter_by(driver_number=driver_number).first()
+                if not driver:
+                    driver = Driver(driver_number=driver_number)
+                    db.session.add(driver)
+                
+                # Update driver information
+                driver.full_name = driver_data.get('full_name', '')
+                driver.team_name = driver_data.get('team_name', '')
+                driver.team_colour = driver_data.get('team_colour', '')
+                driver.country_code = driver_data.get('country_code', '')
+                driver.headshot_url = driver_data.get('headshot_url', '')
+                driver.last_updated = datetime.utcnow()
+                
+                # Create or update driver session
+                driver_session = DriverSession.query.filter_by(
+                    driver_id=driver.id, 
+                    session_id=session.id
+                ).first()
+                
+                if not driver_session:
+                    driver_session = DriverSession(
+                        driver_id=driver.id,
                         session_id=session.id
-                    ).first()
-                    
-                    if not driver_session:
-                        driver_session = DriverSession(
-                            driver_id=driver.id,
-                            session_id=session.id
-                        )
-                        db.session.add(driver_session)
-                    
-                    # Fetch position data for this driver and session
-                    try:
-                        position_response = requests.get(f"{OPENF1_BASE_URL}/position",
-                                                       params={
-                                                           'session_key': session_data['session_key'],
-                                                           'driver_number': driver_number
-                                                       })
-                        position_response.raise_for_status()
-                        position_data = position_response.json()
-                        
-                        if position_data:
-                            # Clear existing positions for this driver session
-                            Position.query.filter_by(driver_session_id=driver_session.id).delete()
-                            
-                            # Add new position data
-                            final_position = None
-                            latest_date = None
-                            
-                            for pos in position_data:
-                                pos_date = datetime.fromisoformat(pos['date'].replace('Z', '+00:00'))
-                                position = Position(
-                                    driver_session_id=driver_session.id,
-                                    date=pos_date,
-                                    position=pos['position']
-                                )
-                                db.session.add(position)
-                                
-                                # Track the final position (latest date)
-                                if not latest_date or pos_date > latest_date:
-                                    latest_date = pos_date
-                                    final_position = pos['position']
-                            
-                            driver_session.final_position = final_position
-                            driver_session.points = pointsDic.get(final_position,0)
-                        
-                    except requests.RequestException as e:
-                        print(f"Failed to fetch position data for driver {driver_number} in session {session_data['session_key']}: {e}")
-                        continue
+                    )
+                    db.session.add(driver_session)
                 
-            except requests.RequestException as e:
-                print(f"Failed to fetch drivers for session {session_data['session_key']}: {e}")
-                continue
+                # Process position data for this driver and session
+                position_key = (session_data['session_key'], driver_number)
+                if position_key in positions_by_session_driver:
+                    position_data = positions_by_session_driver[position_key]
+                    
+                    # Clear existing positions for this driver session
+                    Position.query.filter_by(driver_session_id=driver_session.id).delete()
+                    
+                    # Add new position data
+                    final_position = None
+                    latest_date = None
+                    
+                    for pos in position_data:
+                        pos_date = datetime.fromisoformat(pos['date'].replace('Z', '+00:00'))
+                        position = Position(
+                            driver_session_id=driver_session.id,
+                            date=pos_date,
+                            position=pos['position']
+                        )
+                        db.session.add(position)
+                        
+                        # Track the final position (latest date)
+                        if not latest_date or pos_date > latest_date:
+                            latest_date = pos_date
+                            final_position = pos['position']
+                    
+                    driver_session.final_position = final_position
+                    # Points are now calculated only during retrieval
         
         # Create year data record
         year_data = YearData(
@@ -363,7 +478,7 @@ def sync_f1_data(year):
         # Commit all changes
         db.session.commit()
         
-        print(f"F1 data sync completed successfully for {year}")
+        print(f"Optimized F1 data sync completed successfully for {year}")
         
         return jsonify({
             'success': True,
@@ -395,17 +510,14 @@ def get_stats_summary():
         year = request.args.get('year', type=int)
         
         if year:
-            # Year-specific stats
             total_drivers = db.session.query(Driver).join(DriverSession).join(Session).filter(Session.year == year).distinct().count()
             total_sessions = Session.query.filter(Session.year == year).count()
             latest_session = Session.query.filter(Session.year == year).order_by(Session.date_start.desc()).first()
         else:
-            # Overall stats
             total_drivers = Driver.query.count()
             total_sessions = Session.query.count()
             latest_session = Session.query.order_by(Session.date_start.desc()).first()
         
-        # Get driver stats
         active_drivers = total_drivers if year else db.session.query(Driver).join(DriverSession).distinct().count()
         
         return jsonify({
@@ -446,4 +558,3 @@ with app.app_context():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-    #reset_database()

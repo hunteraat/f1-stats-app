@@ -37,7 +37,6 @@ body {
 .App-header p {
   opacity: 0.9;
   font-size: 1.1rem;
-  margin-bottom: 1rem;
 }
 
 .header-actions {
@@ -220,72 +219,216 @@ body {
 }
 
 .driver-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1) !important;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .driver-card:hover {
   transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+.driver-card-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  min-height: 96px;
+}
+
+.driver-image {
+  flex: 0 0 32%;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1 !important;
+}
+
+.driver-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  opacity: 1 !important;
+  display: block !important;
+}
+
+.driver-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.driver-header-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.name-number-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.driver-header-info h3 {
+  color: #ffd700;
+  font-size: 1.2rem;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.driver-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.1rem 0;
+  width: 100%;
+}
+
+.country-info {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.country-flag {
+  display: flex;
+  align-items: center;
+}
+
+.country-flag img {
+  width: 20px;
+  height: auto;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+
+.country-code {
+  min-width: 35px;
+}
+
 .driver-number {
-  position: absolute;
-  top: 10px;
-  right: 15px;
   background: rgba(255, 215, 0, 0.9);
   color: #000;
-  padding: 0.3rem 0.7rem;
-  border-radius: 15px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
   font-weight: bold;
   font-size: 0.9rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.driver-info h3 {
+.standing-position {
   color: #ffd700;
-  margin-bottom: 0.5rem;
-  font-size: 1.3rem;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-}
-
-.team-name {
+  font-size: 0.9rem;
   font-weight: bold;
-  margin-bottom: 0.3rem;
-  opacity: 0.9;
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
-.country {
-  margin-bottom: 0.5rem;
+.standing-position.top-three {
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.standing-position span {
   opacity: 0.8;
+  font-size: 0.8rem;
+  font-weight: normal;
 }
 
 .driver-stats {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.2rem;
+  margin-top: 0.5rem;
 }
 
-.session-count {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.3rem 0.7rem;
-  border-radius: 15px;
+.driver-stats-primary {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
   font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 0.5rem;
 }
 
-.team-color {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
+.session-count, .points {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.points {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.wins, .podiums, .fastest-laps {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  line-height: 1;
+}
+
+.fastest-laps {
+  background: rgba(128, 0, 128, 0.2);
+  color: #e0b0ff;
+}
+
+/* Ensure emojis are vertically centered */
+.wins span, .podiums span, .fastest-laps span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.reserve-placeholder {
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: bold;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Driver Details */
@@ -396,12 +539,26 @@ body {
 }
 
 .session-type {
-  background: rgba(255, 215, 0, 0.9);
-  color: #000;
-  padding: 0.3rem 0.7rem;
-  border-radius: 15px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
   font-size: 0.8rem;
   font-weight: bold;
+  text-transform: uppercase;
+}
+
+.session-type.race {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+}
+
+.session-type.sprint {
+  background: rgba(0, 191, 255, 0.2);
+  color: #00bfff;
+}
+
+.session-type.practice, .session-type.qualifying {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .session-details p {
@@ -476,6 +633,35 @@ body {
   .sync-button {
     font-size: 0.9rem;
     padding: 0.6rem 1.2rem;
+  }
+  
+  .team-drivers {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-header h3 {
+    font-size: 1.5rem;
+  }
+  
+  .driver-card-content {
+    flex-direction: column;
+  }
+  
+  .driver-image {
+    flex: 0 0 100px;
+    width: 100%;
+  }
+  
+  .driver-info {
+    width: 100%;
+  }
+  
+  .country-info {
+    flex-wrap: wrap;
+  }
+  
+  .driver-number {
+    margin-left: 0;
   }
 }
 
@@ -680,4 +866,78 @@ body {
 .controls-section {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+}
+
+/* Teams Grid */
+.teams-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.team-container {
+  border-radius: 15px;
+  overflow: hidden;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.team-header {
+  margin-bottom: 1.5rem;
+}
+
+.team-header h3 {
+  color: white !important;
+  font-size: 1.8rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  opacity: 1 !important;
+}
+
+.team-drivers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Loading Indicator */
+.loading-indicator {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: white;
+  padding: 1rem;
+  margin: 1rem 2rem;
+  border-radius: 10px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.points-badge {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.points-badge.sprint {
+  background: rgba(0, 191, 255, 0.2);
+  color: #00bfff;
+}
+
+.driver-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.2rem;
 }

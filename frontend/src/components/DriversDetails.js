@@ -71,6 +71,7 @@ const DriverDetails = ({ driver, sessions, selectedYear, onBack, onFetchSessionP
           <thead>
             <tr>
               <th>Session</th>
+              <th>Type</th>
               <th>Location</th>
               <th>Date</th>
               <th>Position</th>
@@ -86,6 +87,11 @@ const DriverDetails = ({ driver, sessions, selectedYear, onBack, onFetchSessionP
                   style={{ cursor: 'pointer' }}
                 >
                   <td>{session.session_name}</td>
+                  <td>
+                    <span className={`session-type ${session.session_type.toLowerCase()}`}>
+                      {session.session_type}
+                    </span>
+                  </td>
                   <td>
                     {session.location}
                     {session.circuit_short_name && (
@@ -112,7 +118,14 @@ const DriverDetails = ({ driver, sessions, selectedYear, onBack, onFetchSessionP
                       {session.final_position || 'N/A'}
                     </span>
                   </td>
-                  <td>{session.points || 0}</td>
+                  <td>
+                    {session.points > 0 && (
+                      <span className="points-badge">
+                        {session.points} {session.session_type === 'Sprint' ? '(Sprint)' : ''}
+                      </span>
+                    )}
+                    {!session.points && '0'}
+                  </td>
                   <td>
                     <button 
                       onClick={() => handleSessionClick(session)}

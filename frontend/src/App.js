@@ -15,7 +15,8 @@ function App() {
   const [drivers, setDrivers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedDriver, setSelectedDriver] = useState(null);
@@ -32,10 +33,10 @@ function App() {
     }
   };
 
-  // Fetch data for selected year
+  // Fetch data for selected year (only if synced)
   const fetchData = async (year = selectedYear) => {
     try {
-      setLoading(true);
+      setDataLoading(true);
       
       const [driversData, sessionsData, statsData] = await Promise.all([
         ApiService.getDrivers(year),
@@ -50,12 +51,14 @@ function App() {
     } catch (err) {
       setError(`Failed to fetch data: ${err.message}`);
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
   // Handle year selection
   const handleYearChange = async (year) => {
+    if (syncLoading) return; // Prevent year changes during sync
+    
     setSelectedYear(year);
     setSelectedDriver(null);
     setDriverSessions([]);
@@ -64,25 +67,29 @@ function App() {
     const yearInfo = availableYears.find(y => y.year === year);
     
     if (!yearInfo || !yearInfo.synced) {
-      // Need to sync data first
+      // Clear existing data and automatically start sync
+      setDrivers([]);
+      setSessions([]);
+      setStats(null);
       await syncF1Data(year);
     } else {
-      // Just fetch existing data
+      // Fetch existing data
       await fetchData(year);
     }
   };
 
-  // Sync F1 data from OpenF1 API
+  // Sync F1 data from OpenF1 API - now consolidates all API calls by year
   const syncF1Data = async (year = selectedYear) => {
     try {
       setSyncLoading(true);
+      setError(null);
+      
+      // Clear existing data to show we're refreshing
+      setDrivers([]);
+      setSessions([]);
+      setStats(null);
+      
       const result = await ApiService.syncData(year);
-
-      if (result.cached) {
-        // Data was already cached, just refresh
-        await fetchData(year);
-        return;
-      }
 
       // Refresh data after sync
       await Promise.all([
@@ -91,11 +98,11 @@ function App() {
       ]);
       
       if (!result.cached) {
-        alert(`✅ ${result.message}\n📊 Processed ${result.drivers_processed} drivers and ${result.sessions_processed} sessions`);
+        console.log(`✅ Synced data for ${year}\n📊 Processed ${result.drivers_processed} drivers and ${result.sessions_processed} sessions`);
       }
     } catch (err) {
       setError(`Sync failed: ${err.message}`);
-      alert(`❌ Sync failed: ${err.message}`);
+      console.error('Sync failed:', err);
     } finally {
       setSyncLoading(false);
     }
@@ -124,26 +131,56 @@ function App() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      await fetchAvailableYears();
-      await handleYearChange(selectedYear);
+      try {
+        // First load available years (this is fast)
+        await fetchAvailableYears();
+        
+        // Then check if selected year has data
+        const yearInfo = availableYears.find(y => y.year === selectedYear);
+        if (yearInfo && yearInfo.synced) {
+          await fetchData(selectedYear);
+        }
+      } catch (err) {
+        setError(`Failed to initialize app: ${err.message}`);
+      } finally {
+        setInitialLoading(false);
+      }
     };
     
     initializeApp();
   }, []);
 
+  // Show initial loading only for the first app load
+  if (initialLoading) {
+    return (
+      <div className="App">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '18px' 
+        }}>
+          Loading F1 Statistics App...
+        </div>
+      </div>
+    );
+  }
+
+  // Check if current year has data
+  const currentYearInfo = availableYears.find(y => y.year === selectedYear);
+  const hasDataForYear = currentYearInfo && currentYearInfo.synced;
+
   return (
     <div className="App">
-      <Header 
-        onSync={() => syncF1Data(selectedYear)} 
-        syncLoading={syncLoading}
-      />
+      <Header />
 
       <div className="controls-section">
         <YearSelector
           availableYears={availableYears}
           selectedYear={selectedYear}
           onYearChange={handleYearChange}
-          loading={syncLoading}
+          loading={syncLoading} // Disable during sync
         />
         
         <TabNavigation 
@@ -151,6 +188,16 @@ function App() {
           onTabChange={setActiveTab} 
         />
       </div>
+
+      {/* Loading indicator for data operations */}
+      {(syncLoading || dataLoading) && (
+        <div className="loading-indicator">
+          {syncLoading ? 
+            `🔄 Downloading F1 data for ${selectedYear}... This may take a moment.` : 
+            '📊 Loading data...'
+          }
+        </div>
+      )}
 
       <main className="main-content">
         {error && (
@@ -160,30 +207,34 @@ function App() {
           />
         )}
 
-        {activeTab === 'overview' && (
-          <OverviewTab 
-            stats={stats} 
-            selectedYear={selectedYear}
-          />
-        )}
+        {hasDataForYear && (
+          <>
+            {activeTab === 'overview' && (
+              <OverviewTab 
+                stats={stats} 
+                selectedYear={selectedYear}
+              />
+            )}
 
-        {activeTab === 'drivers' && (
-          <DriversTab 
-            drivers={drivers} 
-            selectedDriver={selectedDriver}
-            driverSessions={driverSessions}
-            selectedYear={selectedYear}
-            onDriverSelect={fetchDriverSessions}
-            onBackToDrivers={() => setSelectedDriver(null)}
-            onFetchSessionPositions={fetchSessionPositions}
-          />
-        )}
+            {activeTab === 'drivers' && (
+              <DriversTab 
+                drivers={drivers} 
+                selectedDriver={selectedDriver}
+                driverSessions={driverSessions}
+                selectedYear={selectedYear}
+                onDriverSelect={fetchDriverSessions}
+                onBackToDrivers={() => setSelectedDriver(null)}
+                onFetchSessionPositions={fetchSessionPositions}
+              />
+            )}
 
-        {activeTab === 'sessions' && (
-          <SessionsTab 
-            sessions={sessions} 
-            selectedYear={selectedYear}
-          />
+            {activeTab === 'sessions' && (
+              <SessionsTab 
+                sessions={sessions} 
+                selectedYear={selectedYear}
+              />
+            )}
+          </>
         )}
       </main>
     </div>
