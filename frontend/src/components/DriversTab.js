@@ -96,7 +96,9 @@ const DriversTab = ({
       teams[teamName] = {
         drivers: [],
         teamColor: formattedColor,
-        validTeamColor: formattedColor !== '#333333' ? formattedColor : null
+        validTeamColor: formattedColor !== '#333333' ? formattedColor : null,
+        teamPoints: driver.team_points || 0,
+        constructorPosition: driver.constructor_position || 0
       };
     } else if (!teams[teamName].validTeamColor && formattedColor !== '#333333') {
       teams[teamName].validTeamColor = formattedColor;
@@ -122,21 +124,23 @@ const DriversTab = ({
           <table>
             <thead>
               <tr>
-                <th>Session</th>
-                <th>Location</th>
-                <th>Date</th>
+                <th className="left-spacing">Session</th>
+                <th className="left-spacing">Location</th>
+                <th className="left-spacing">Date</th>
                 <th>Position</th>
                 <th>Points</th>
+                <th>Fastest Lap</th>
               </tr>
             </thead>
             <tbody>
               {driverSessions.map(session => (
                 <tr key={session.id}>
-                  <td>{session.session_name}</td>
-                  <td>{session.location}</td>
-                  <td>{new Date(session.date_start).toLocaleDateString()}</td>
+                  <td className="left-spacing">{session.session_name}</td>
+                  <td className="left-spacing">{session.location}</td>
+                  <td className="left-spacing">{new Date(session.date_start).toLocaleDateString()}</td>
                   <td>{session.final_position || 'N/A'}</td>
                   <td>{session.points || 0}</td>
+                  <td>{session.fastest_lap ? '✅' : '❌'}</td>
                 </tr>
               ))}
             </tbody>
@@ -161,7 +165,9 @@ const DriversTab = ({
       <h2>🏎️ Drivers ({selectedYear})</h2>
       
       <div className="teams-grid">
-        {Object.entries(driversByTeam).map(([teamName, team]) => (
+        {Object.entries(driversByTeam)
+          .sort(([, teamA], [, teamB]) => teamA.constructorPosition - teamB.constructorPosition)
+          .map(([teamName, team]) => (
           <div 
             key={teamName}
             className="team-container"
@@ -172,6 +178,19 @@ const DriversTab = ({
           >
             <div className="team-header">
               <h3>{teamName}</h3>
+              <div className="team-stats">
+                <span className={`constructor-position 
+                  ${team.constructorPosition === 1 ? 'champion' : ''}
+                  ${team.constructorPosition > 1 && team.constructorPosition <= 3 ? 'podium' : ''}
+                  ${team.constructorPosition > 3 && team.constructorPosition < 10 ? 'top-ten' : ''}
+                  ${team.constructorPosition >= 10 ? 'below-ten' : ''}`}>
+                  <span>Constructor Position: </span>
+                  <span className="position-number">{team.constructorPosition}</span>
+                </span>
+                <span className="team-points">
+                  {team.teamPoints} points
+                </span>
+              </div>
             </div>
             
             <div className="team-drivers">
@@ -209,22 +228,22 @@ const DriversTab = ({
                           </span>
                         </div>
                         <div className="driver-meta-row">
-                          <div className="country-info">
-                            <span className="country-code">
-                              {driver.country_code}
-                            </span>
-                            <span className="country-flag">
-                              {driver.country_code && (
-                                <img 
-                                  src={getCountryFlagUrl(driver.country_code)}
-                                  alt={driver.country_code}
-                                />
-                              )}
-                            </span>
+                          <div className="country-flag">
+                            {driver.country_code}
+                            {driver.country_code && (
+                              <img 
+                                src={getCountryFlagUrl(driver.country_code)}
+                                alt={driver.country_code}
+                              />
+                            )}
                           </div>
-                          <span className={`standing-position ${driver.standing_position <= 3 ? 'top-three' : ''}`}>
-                            {driver.standing_position}
-                            <span>position</span>
+                          <span className={`standing-position 
+                            ${driver.standing_position === 1 ? 'champion' : ''}
+                            ${driver.standing_position > 1 && driver.standing_position <= 3 ? 'podium' : ''}
+                            ${driver.standing_position > 3 && driver.standing_position < 10 ? 'top-ten' : ''}
+                            ${driver.standing_position >= 10 ? 'below-ten' : ''}`}>
+                            <span>Driver Position:</span>
+                            <span className="position-number">{driver.standing_position}</span>
                           </span>
                         </div>
                         <div className="driver-stats-primary">
@@ -232,7 +251,7 @@ const DriversTab = ({
                             {driver.race_count} races
                           </div>
                           <div className="points">
-                            📊 {driver.points || 0} points
+                            {driver.points || 0} points
                           </div>
                         </div>
                       </div>
@@ -240,14 +259,14 @@ const DriversTab = ({
                   </div>
                   
                   <div className="driver-stats">
-                    <div className="wins">
+                    <div className={`wins ${!driver.wins ? 'zero-value' : ''}`}>
                       <span>🏆</span> {driver.wins || 0} wins
                     </div>
-                    <div className="podiums">
+                    <div className={`podiums ${!driver.podiums ? 'zero-value' : ''}`}>
                       <span>🥇</span> {driver.podiums || 0} podiums
                     </div>
-                    <div className="fastest-laps">
-                      <span>⚡</span> 0 fastest laps
+                    <div className={`fastest-laps ${!driver.fastest_laps ? 'zero-value' : ''}`}>
+                      <span>⚡</span> {driver.fastest_laps || 0} fastest laps
                     </div>
                   </div>
                 </div>

@@ -2,9 +2,9 @@ import React from 'react';
 
 const TabNavigation = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'overview', label: '📊 Overview', icon: '📊' },
-    { id: 'drivers', label: '🏎️ Drivers', icon: '🏎️' },
-    { id: 'sessions', label: '🏁 Sessions', icon: '🏁' }
+    { id: 'overview', label: 'Overview', icon: '📊' },
+    { id: 'drivers', label: 'Drivers', icon: '🏎️' },
+    { id: 'sessions', label: 'Sessions', icon: '🏁' }
   ];
 
   return (
