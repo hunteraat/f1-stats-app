@@ -1,7 +1,11 @@
 import { API_CONFIG } from '../../constants/config';
 
+interface RequestOptions extends RequestInit {
+  headers?: HeadersInit;
+}
+
 export class BaseApiService {
-  static async request(endpoint, options = {}) {
+  static async request(endpoint: string, options: RequestOptions = {}): Promise<any> {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
         headers: {

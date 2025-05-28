@@ -1,4 +1,5 @@
 import React from 'react';
+import './OverviewTab.css';
 
 const OverviewTab = ({ stats, selectedYear }) => {
   if (!stats) {
@@ -11,36 +12,32 @@ const OverviewTab = ({ stats, selectedYear }) => {
 
   return (
     <div className="overview-section">
-      <h2>📊 {selectedYear} F1 Season Overview</h2>
+      <h2>{selectedYear} F1 Season Overview</h2>
       
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-number">{stats.total_drivers}</div>
+          <div className="stat-number">{stats.drivers.length}</div>
           <div className="stat-label">Total Drivers</div>
         </div>
         
         <div className="stat-card">
-          <div className="stat-number">{stats.active_drivers}</div>
-          <div className="stat-label">Active Drivers</div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-number">{stats.total_sessions}</div>
+          <div className="stat-number">{stats.sessions.length}</div>
           <div className="stat-label">Sessions</div>
         </div>
         
-        {stats.latest_session && (
+        {stats.sessions[0] && (
           <div className="stat-card latest-session">
+            <div className="stat-label">Latest Session</div>
             <div className="stat-content">
               <div className="session-name">
-                🏁 {stats.latest_session.name}
+                🏁 {stats.sessions[0].name}
               </div>
               <div className="session-location">
-                📍 {stats.latest_session.location}
+                📍 {stats.sessions[0].location}
               </div>
               <div className="session-date">
-                📅 {stats.latest_session.date ? 
-                  new Date(stats.latest_session.date).toLocaleDateString('en-US', {
+                📅 {stats.sessions[0].date ? 
+                  new Date(stats.sessions[0].date).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -51,14 +48,8 @@ const OverviewTab = ({ stats, selectedYear }) => {
           </div>
         )}
       </div>
-      
-      <div className="sync-info">
-        <p>💡 Use the sync button to refresh data from OpenF1 API</p>
-        <p>🏎️ Navigate to Drivers tab to explore individual driver statistics</p>
-        <p>🏁 Check Sessions tab for race weekend details</p>
-      </div>
     </div>
   );
 };
 
-export default OverviewTab;
+export default OverviewTab; 

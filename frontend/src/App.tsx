@@ -1,71 +1,83 @@
-import React, { useState } from 'react';
-import { Container, Box, Typography, Button, CircularProgress, AppBar, Toolbar } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import { useF1Data } from './hooks/useF1Data';
-import { SyncProgress } from './components/SyncProgress';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { ThemeToggle } from './components/ThemeToggle';
+import TabNavigation from './components/TabNavigation/TabNavigation.jsx';
+import OverviewTab from './components/OverviewTab/OverviewTab.jsx';
+import DriversTab from './components/DriversTab/DriversTab.jsx';
+import SessionsTab from './components/SessionsTab/SessionsTab.jsx';
+import YearSelector from './components/YearSelector/YearSelector.jsx';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage.jsx';
+import SyncStatus from './components/SyncStatus/SyncStatus.jsx';
 
-function AppContent() {
-  const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const { data, isLoading, error, syncData, syncStatus } = useF1Data(selectedYear);
+const App: React.FC = () => {
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [activeTab, setActiveTab] = useState('overview');
+  const { data, isLoading, error, syncStatus } = useF1Data(selectedYear);
+
+  // Generate available years (from 2018 to current year)
+  const availableYears = Array.from(
+    { length: new Date().getFullYear() - 2017 },
+    (_, i) => ({
+      year: new Date().getFullYear() - i,
+      synced: true,
+      drivers_count: 20
+    })
+  );
+
+  const renderContent = () => {
+    if (!data) return null;
+
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewTab stats={data} selectedYear={selectedYear} />;
+      case 'drivers':
+        return (
+          <DriversTab
+            drivers={data.drivers}
+            selectedYear={selectedYear}
+            onFetchSessionPositions={() => {}}
+          />
+        );
+      case 'sessions':
+        return <SessionsTab sessions={data.sessions} selectedYear={selectedYear} />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <>
-      <AppBar position="static" color="default" elevation={0}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            F1 Statistics
-          </Typography>
-          <ThemeToggle />
-        </Toolbar>
-      </AppBar>
+    <div className="app-container">
+      <TabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
+      
+      <main className="main-content">
+        <Container maxWidth="lg">
+          <Box sx={{ pt: 1, pb: 2 }}>
+            {error && <ErrorMessage error={error} onDismiss={() => {}} />}
 
-      <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            Season {selectedYear}
-          </Typography>
+            <SyncStatus syncStatus={syncStatus} />
 
-          <SyncProgress syncStatus={syncStatus} />
+            <YearSelector
+              availableYears={availableYears}
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
+              loading={isLoading}
+            />
 
-          {error && (
-            <Typography color="error" sx={{ mb: 2 }}>
-              {error}
-            </Typography>
-          )}
-
-          <Box sx={{ mb: 2 }}>
-            <Button 
-              variant="contained" 
-              onClick={() => syncData()}
-              disabled={syncStatus?.status === 'in_progress'}
-              startIcon={syncStatus?.status === 'in_progress' ? <CircularProgress size={20} /> : null}
-            >
-              {syncStatus?.status === 'in_progress' ? 'Syncing...' : 'Sync Data'}
-            </Button>
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              renderContent()
+            )}
           </Box>
-
-          {isLoading ? (
-            <CircularProgress />
-          ) : data ? (
-            <Box>
-              {/* Your data visualization components here */}
-              <pre>{JSON.stringify(data, null, 2)}</pre>
-            </Box>
-          ) : null}
-        </Box>
-      </Container>
-    </>
+        </Container>
+      </main>
+    </div>
   );
-}
-
-function App() {
-  return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  );
-}
+};
 
 export default App; 

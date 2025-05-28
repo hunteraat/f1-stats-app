@@ -1,31 +1,70 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchF1Data, syncF1Data, getSyncStatus, SyncStatus } from '../services/api/f1';
+import { fetchF1Data, syncF1Data, getSyncStatus, SyncStatus } from '../services/api/f1-sync.service';
 import { useInterval } from './useInterval';
 
+export interface F1Data {
+  drivers: Array<{
+    driverId: string;
+    code: string;
+    url: string;
+    givenName: string;
+    familyName: string;
+    full_name: string;
+    dateOfBirth: string;
+    nationality: string;
+    team_name: string;
+    team_colour: string;
+    driver_number: number;
+    country_code: string;
+    session_count: number;
+    race_count: number;
+    wins: number;
+    podiums: number;
+    fastest_laps: number;
+    points: number;
+    standing_position: number;
+    team_points: number;
+    constructor_position: number | null;
+  }>;
+  sessions: Array<{
+    id: number;
+    sessionId: string;
+    session_key: string;
+    session_name: string;
+    year: number;
+    round: number;
+    circuitId: string;
+    circuitName: string;
+    circuit_short_name: string;
+    location: string;
+    country_name: string;
+    date: string;
+    date_start: string | null;
+    time: string;
+    sessionType: string;
+    session_type: string;
+    driver_count: number;
+    lap_count: number;
+  }>;
+  stats: {
+    total_drivers: number;
+    active_drivers: number;
+    total_sessions: number;
+    latest_session: {
+      name: string;
+      location: string;
+      date: string | null;
+    } | null;
+  };
+}
+
 export const useF1Data = (year: number) => {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<F1Data | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
-  const isInitializedRef = useRef(false);
-  const isSyncingRef = useRef(false);
-
-  const checkSyncStatus = useCallback(async () => {
-    try {
-      const status = await getSyncStatus(year);
-      setSyncStatus(status);
-      return status;
-    } catch (err) {
-      console.error('Failed to check sync status:', err);
-      return null;
-    }
-  }, [year]);
-
-  // Poll for sync status every 2 seconds when syncing
-  useInterval(
-    checkSyncStatus,
-    syncStatus?.status === 'in_progress' ? 2000 : null
-  );
+  const [isSyncing, setIsSyncing] = useState(false);
+  const lastSyncTime = useRef<number>(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -33,69 +72,69 @@ export const useF1Data = (year: number) => {
       setError(null);
       const result = await fetchF1Data(year);
       setData(result);
+      lastSyncTime.current = Date.now();
     } catch (err: any) {
       setError(err.message || 'Failed to fetch F1 data');
+      setData(null);
     } finally {
       setIsLoading(false);
     }
   }, [year]);
 
-  const syncData = useCallback(async () => {
-    if (isSyncingRef.current) return;
-    
+  const checkSyncStatus = useCallback(async () => {
     try {
-      isSyncingRef.current = true;
+      const status = await getSyncStatus(year);
+      setSyncStatus(status);
+      return status;
+    } catch (err: any) {
+      console.error('Failed to check sync status:', err);
+      return null;
+    }
+  }, [year]);
+
+  const handleSync = async () => {
+    try {
+      setIsSyncing(true);
       setError(null);
-      await syncF1Data(year);
-      await checkSyncStatus();
+      const result = await syncF1Data(year);
+      if (result.success) {
+        await fetchData();
+      } else {
+        setError(result.error || 'Sync failed');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to sync F1 data');
     } finally {
-      isSyncingRef.current = false;
+      setIsSyncing(false);
     }
-  }, [year, checkSyncStatus]);
+  };
 
-  // Initial data load and sync check
+  // Initial data fetch
   useEffect(() => {
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
+    fetchData();
+  }, [fetchData]);
 
-    const initialize = async () => {
-      // Check sync status first
-      const status = await checkSyncStatus();
-      
-      // If it's the current year, check if we need an incremental update
-      const isCurrentYear = year === new Date().getFullYear();
-      if (isCurrentYear && status?.last_incremental) {
-        const lastSync = new Date(status.last_incremental);
-        const now = new Date();
-        const hoursSinceLastSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
-        
-        // If more than 1 hour since last sync, trigger an incremental update
-        if (hoursSinceLastSync > 1) {
-          await syncData();
-        }
-      }
-      
-      // Fetch initial data
+  // Check sync status periodically only when syncing
+  useInterval(async () => {
+    if (!isSyncing) return;
+
+    const status = await checkSyncStatus();
+    if (status?.status === 'completed') {
+      setIsSyncing(false);
       await fetchData();
-    };
-
-    initialize();
-  }, [year, checkSyncStatus, fetchData, syncData]);
-
-  // Refetch data when sync completes
-  useEffect(() => {
-    if (syncStatus?.status === 'completed') {
-      fetchData();
+    } else if (status?.status === 'error') {
+      setIsSyncing(false);
+      setError('Sync failed');
     }
-  }, [syncStatus?.status, fetchData]);
+  }, isSyncing ? 5000 : null);
 
   return {
     data,
     isLoading,
     error,
-    syncData,
-    syncStatus
+    syncStatus,
+    isSyncing,
+    handleSync,
+    refetch: fetchData
   };
 }; 

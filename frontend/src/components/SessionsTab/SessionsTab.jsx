@@ -1,4 +1,5 @@
 import React from 'react';
+import './SessionsTab.css';
 
 const SessionsTab = ({ sessions, selectedYear }) => {
   if (!sessions.length) {
@@ -64,55 +65,31 @@ const SessionsTab = ({ sessions, selectedYear }) => {
               {locationSessions
                 .sort((a, b) => new Date(a.date_start) - new Date(b.date_start))
                 .map(session => (
-                  <div key={session.id} className="session-card">
+                  <div 
+                    key={session.id}
+                    className="session-card"
+                    style={{
+                      backgroundColor: `${getSessionTypeColor(session.session_type)}22`,
+                      borderLeft: `4px solid ${getSessionTypeColor(session.session_type)}`
+                    }}
+                  >
                     <div className="session-header">
-                      <h4>{session.session_name}</h4>
-                      <span 
-                        className="session-type"
-                        style={{ 
-                          backgroundColor: getSessionTypeColor(session.session_type),
-                          color: session.session_type?.toLowerCase() === 'qualifying' ? '#000' : '#fff'
-                        }}
-                      >
-                        {formatSessionType(session.session_type)}
-                      </span>
+                      <h4>{formatSessionType(session.session_type)}</h4>
+                      <p>{new Date(session.date_start).toLocaleDateString()}</p>
                     </div>
                     
-                    <div className="session-details">
-                      <p>
-                        <strong>📅 Date:</strong> {' '}
-                        {session.date_start ? 
-                          new Date(session.date_start).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          }) : 
-                          'TBD'
-                        }
-                      </p>
-                      
-                      {session.date_start && (
-                        <p>
-                          <strong>🕐 Time:</strong> {' '}
-                          {new Date(session.date_start).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      )}
-                      
-                      <p>
-                        <strong>👥 Drivers:</strong> {session.driver_count || 0}
-                      </p>
-                      
-                      <small>
-                        Session Key: {session.session_key}
-                      </small>
+                    <div className="session-stats">
+                      <div className="stat">
+                        <span>Drivers:</span>
+                        <strong>{session.driver_count || 0}</strong>
+                      </div>
+                      <div className="stat">
+                        <span>Laps:</span>
+                        <strong>{session.lap_count || 0}</strong>
+                      </div>
                     </div>
                   </div>
-                ))
-              }
+                ))}
             </div>
           </div>
         ))}
@@ -121,4 +98,4 @@ const SessionsTab = ({ sessions, selectedYear }) => {
   );
 };
 
-export default SessionsTab;
+export default SessionsTab; 

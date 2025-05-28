@@ -1,10 +1,11 @@
 import React from 'react';
+import './YearSelector.css';
 
 const YearSelector = ({ availableYears, selectedYear, onYearChange, loading }) => {
   return (
     <div className="year-selector">
       <label htmlFor="year-select">
-        <span className="year-label">📅 Select F1 Season:</span>
+        <span className="year-label">Select F1 Season: </span>
         <select 
           id="year-select"
           value={selectedYear} 
@@ -27,14 +28,8 @@ const YearSelector = ({ availableYears, selectedYear, onYearChange, loading }) =
           }
         </select>
       </label>
-      
-      {loading && (
-        <div className="sync-status">
-          <span className="sync-indicator">🔄 Loading data...</span>
-        </div>
-      )}
     </div>
   );
 };
 
-export default YearSelector;
+export default YearSelector; 

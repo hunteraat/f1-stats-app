@@ -1,0 +1,38 @@
+.sync-status {
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-left: 4px solid var(--accent-primary);
+}
+
+.sync-progress {
+  background-color: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+  height: 8px;
+  margin-bottom: var(--spacing-sm);
+  overflow: hidden;
+}
+
+.progress-bar {
+  background-color: var(--accent-primary);
+  height: 100%;
+  transition: width var(--transition-normal);
+}
+
+.sync-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.sync-message {
+  color: var(--text-secondary);
+}
+
+.sync-percentage {
+  font-weight: bold;
+  color: var(--accent-primary);
+} 
