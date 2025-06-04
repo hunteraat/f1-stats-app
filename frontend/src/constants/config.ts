@@ -4,9 +4,9 @@ export const API_CONFIG = {
     YEARS: '/years',
     DRIVERS: '/drivers',
     SESSIONS: '/sessions',
-    STATS: '/stats/summary',
-    SYNC: '/sync/data',
-    DATABASE: '/sync/database'
+    OVERVIEW: '/overview',
+    SYNC: '/sync',
+    CONSTRUCTORS: '/constructors'
   }
 };
 

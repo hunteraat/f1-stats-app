@@ -1,8 +1,9 @@
 :root {
   /* Background Colors */
   --bg-primary: #ffffff;    /* Clean white background */
-  --bg-secondary: #f8f9fa;  /* Light gray for cards/sections */
-  --bg-tertiary: #e9ecef;   /* Slightly darker for hover states */
+  --bg-primary-transparent: rgba(255, 255, 255, 0.5);
+  --bg-secondary: #ececec;  /* Light gray for cards/sections */
+  --bg-tertiary: #d8dbdf;   /* Slightly darker for hover states */
 
   /* Text Colors */
   --text-primary: #212529;   /* Dark gray for main text */
@@ -40,6 +41,9 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+
+  /* Tab Spacing */
+  --tab-spacing: 200px;
 }
 
 /* Base styles */

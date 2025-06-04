@@ -3,7 +3,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 240px;
+  width: var(--tab-spacing);
   background: var(--bg-secondary);
   padding: var(--spacing-lg) var(--spacing-md);
   display: flex;

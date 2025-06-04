@@ -1,6 +1,6 @@
 from flask import jsonify, current_app
 from datetime import datetime, timedelta, timezone
-from models import Driver, Session, DriverSession, Position, Lap, YearData, ConstructorStanding, SessionKeyCache
+from models import Driver, Session, DriverSession, Position, Lap, YearData, SessionKeyCache
 from extensions import db
 from utils import fetch_f1_data, add_cors_headers
 import asyncio

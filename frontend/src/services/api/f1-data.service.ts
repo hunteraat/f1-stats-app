@@ -1,26 +1,6 @@
 import { BaseApiService } from './base-api.service';
 import { API_CONFIG } from '../../constants/config';
-
-interface Driver {
-  id: string;
-  name: string;
-  // Add other driver properties as needed
-}
-
-interface Session {
-  id: string;
-  // Add other session properties as needed
-}
-
-interface StatsSummary {
-  // Add stats properties as needed
-}
-
-interface SyncResult {
-  cached: boolean;
-  drivers_processed: number;
-  sessions_processed: number;
-}
+import { Driver, Session, Overview, SyncResult, SyncStatus, Constructor, DriverSession } from '../../types/models';
 
 export class F1DataService extends BaseApiService {
   static async getAvailableYears(): Promise<{ year: number; synced: boolean }[]> {
@@ -32,9 +12,9 @@ export class F1DataService extends BaseApiService {
     return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}${params}`);
   }
 
-  static async getDriverSessions(driverId: string, year?: number): Promise<{ driver: Driver; sessions: Session[] }> {
+  static async getDriverSessions(driverNumber: number, year?: number): Promise<DriverSession[]> {
     const params = year ? `?year=${year}` : '';
-    return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}/${driverId}/sessions${params}`);
+    return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}/${driverNumber}/sessions${params}`);
   }
 
   static async getSessions(year?: number): Promise<Session[]> {
@@ -46,9 +26,14 @@ export class F1DataService extends BaseApiService {
     return this.request(`${API_CONFIG.ENDPOINTS.SESSIONS}/${sessionId}/positions`);
   }
 
-  static async getStatsummary(year?: number): Promise<StatsSummary> {
+  static async getOverview(year?: number): Promise<Overview> {
     const params = year ? `?year=${year}` : '';
-    return this.request(`${API_CONFIG.ENDPOINTS.STATS}${params}`);
+    return this.request(`${API_CONFIG.ENDPOINTS.OVERVIEW}${params}`);
+  }
+
+  static async getConstructors(year?: number): Promise<Constructor[]> {
+    const params = year ? `?year=${year}` : '';
+    return this.request(`${API_CONFIG.ENDPOINTS.CONSTRUCTORS}${params}`);
   }
 
   static async syncData(year: number): Promise<SyncResult> {
@@ -57,9 +42,7 @@ export class F1DataService extends BaseApiService {
     });
   }
 
-  static async resetDatabase(): Promise<void> {
-    return this.request(`${API_CONFIG.ENDPOINTS.DATABASE}/reset`, {
-      method: 'POST',
-    });
+  static async getSyncStatus(year: number): Promise<SyncStatus> {
+    return this.request(`${API_CONFIG.ENDPOINTS.SYNC}/status/${year}`);
   }
 } 

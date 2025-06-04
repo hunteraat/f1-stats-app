@@ -1,11 +1,28 @@
 import React from 'react';
 import './YearSelector.css';
 
-const YearSelector = ({ availableYears, selectedYear, onYearChange, loading }) => {
+interface YearInfo {
+  year: number;
+  synced: boolean;
+}
+
+interface YearSelectorProps {
+  availableYears: YearInfo[];
+  selectedYear: number;
+  onYearChange: (year: number) => void;
+  loading: boolean;
+}
+
+const YearSelector: React.FC<YearSelectorProps> = ({ 
+  availableYears, 
+  selectedYear, 
+  onYearChange, 
+  loading 
+}) => {
   return (
     <div className="year-selector">
       <label htmlFor="year-select">
-        <span className="year-label">Select F1 Season: </span>
+        <span className="year-label">F1 Season: </span>
         <select 
           id="year-select"
           value={selectedYear} 
@@ -18,11 +35,7 @@ const YearSelector = ({ availableYears, selectedYear, onYearChange, loading }) =
             .sort((a, b) => b.year - a.year) // Sort newest first
             .map(yearInfo => (
               <option key={yearInfo.year} value={yearInfo.year}>
-                {yearInfo.year} {yearInfo.synced ? '✅' : '⏳'} 
-                {yearInfo.synced && yearInfo.drivers_count > 0 
-                  ? ` (${yearInfo.drivers_count} drivers)` 
-                  : ''
-                }
+                {yearInfo.year}
               </option>
             ))
           }

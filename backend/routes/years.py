@@ -2,20 +2,10 @@ import os
 import sys
 from flask import Blueprint, jsonify
 from sqlalchemy import func
+from models import db, YearData
+from utils import add_cors_headers
+from . import years_bp
 
-# Handle imports based on where we're running from
-try:
-    # Try local imports first
-    from models import db, YearData
-    from utils import add_cors_headers
-except ImportError:
-    # If local imports fail, try package imports
-    if os.path.basename(os.getcwd()) == 'backend':
-        sys.path.insert(0, os.path.dirname(os.getcwd()))
-    from backend.models import db, YearData
-    from backend.utils import add_cors_headers
-
-years_bp = Blueprint('years', __name__)
 years_bp = add_cors_headers(years_bp)
 
 @years_bp.route('/', methods=['GET'])

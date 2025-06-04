@@ -35,7 +35,7 @@
 .error-content {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .error-icon {
@@ -45,12 +45,12 @@
 .dismiss-button {
   background: none;
   border: none;
-  color: #ff6b6b;
+  color: var(--status-error);
   cursor: pointer;
-  padding: 0.5rem;
+  padding: var(--spacing-sm);
   font-size: 1.2rem;
   opacity: 0.8;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .dismiss-button:hover {

@@ -10,6 +10,7 @@ class Driver(db.Model):
     country_code = db.Column(db.String(3), nullable=True)
     headshot_url = db.Column(db.String(255), nullable=True)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=False)
     
     sessions = db.relationship('DriverSession', back_populates='driver', cascade='all, delete-orphan')
 
@@ -76,16 +77,6 @@ class YearData(db.Model):
     drivers_count = db.Column(db.Integer)
     sessions_count = db.Column(db.Integer)
 
-class ConstructorStanding(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    team_name = db.Column(db.String(50), nullable=False)
-    points = db.Column(db.Integer, default=0)
-    position = db.Column(db.Integer, nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    __table_args__ = (db.UniqueConstraint('team_name', 'year'),)
-
 class SessionKeyCache(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     year = db.Column(db.Integer, nullable=False)
@@ -98,4 +89,57 @@ class SessionKeyCache(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint('year', 'session_key', name='unique_session_key_per_year'),
-    ) 
+    )
+
+class ConstructorStats(db.Model):
+    __tablename__ = 'constructor_stats'
+    
+    team_name = db.Column(db.String(50), nullable=False, primary_key=True)
+    team_colour = db.Column(db.String(7), nullable=True)
+    position = db.Column(db.Integer, nullable=False)
+    points = db.Column(db.Integer, default=0)
+    podiums = db.Column(db.Integer, default=0)
+    wins = db.Column(db.Integer, default=0)
+    fastest_laps = db.Column(db.Integer, default=0)
+    races = db.Column(db.Integer, default=0)
+    year = db.Column(db.Integer, nullable=False, primary_key=True)
+    
+    __table_args__ = (db.UniqueConstraint('team_name', 'year'),)
+
+class DriverStats(db.Model):
+    __tablename__ = 'driver_stats'
+    
+    driver_number = db.Column(db.Integer, nullable=False, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    team_name = db.Column(db.String(50), nullable=True)
+    team_colour = db.Column(db.String(7), nullable=True)
+    races = db.Column(db.Integer, default=0)
+    country_code = db.Column(db.String(3), nullable=True)
+    headshot_url = db.Column(db.String(255), nullable=True)
+    position = db.Column(db.Integer, nullable=False)
+    podiums = db.Column(db.Integer, default=0)
+    wins = db.Column(db.Integer, default=0)
+    fastest_laps = db.Column(db.Integer, default=0)
+    points = db.Column(db.Integer, default=0)
+    average_position = db.Column(db.Float, nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    year = db.Column(db.Integer, nullable=False, primary_key=True)
+    
+    __table_args__ = (db.UniqueConstraint('driver_number', 'year'),)
+
+class DriverSessionStats(db.Model):
+    __tablename__ = 'driver_session_stats'
+    
+    driver_number = db.Column(db.Integer, nullable=False, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    team_name = db.Column(db.String(50), nullable=True)
+    session_name = db.Column(db.String(50), nullable=False, primary_key=True)
+    session_type = db.Column(db.String(20), nullable=False, primary_key=True)
+    location = db.Column(db.String(100), nullable=True)
+    date_start = db.Column(db.DateTime, nullable=False, primary_key=True)
+    final_position = db.Column(db.Integer, nullable=True)
+    fastest_lap = db.Column(db.Boolean, default=False)
+    points = db.Column(db.Integer, default=0)
+    year = db.Column(db.Integer, nullable=False, primary_key=True)
+    
+    __table_args__ = (db.UniqueConstraint('driver_number', 'session_name', 'session_type', 'date_start', 'year'),)

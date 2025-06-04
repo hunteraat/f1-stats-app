@@ -3,16 +3,7 @@ import sys
 import aiohttp
 import asyncio
 import logging
-
-# Handle imports based on where we're running from
-try:
-    # Try local imports first
-    from config import OPENF1_BASE_URL
-except ImportError:
-    # If local imports fail, try package imports
-    if os.path.basename(os.getcwd()) == 'backend':
-        sys.path.insert(0, os.path.dirname(os.getcwd()))
-    from backend.config import OPENF1_BASE_URL
+from config import OPENF1_BASE_URL
 
 async def fetch_f1_data(session: aiohttp.ClientSession, endpoint: str, params: dict = None, max_retries: int = 3, initial_delay: float = 1.0):
     """

@@ -1,0 +1,139 @@
+.driver-details {
+  padding: var(--spacing-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-xl);
+  transition: color var(--transition-fast);
+}
+
+.back-button:hover {
+  color: var(--text-primary);
+}
+
+.driver-details-header {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.driver-details-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.country-flag {
+  line-height: 1;
+  margin-left: var(--spacing-sm);
+  height: 1.5rem;
+}
+
+.driver-header h2 {
+  margin: var(--spacing-sm) 0 0;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.driver-header p {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--text-secondary);
+}
+
+.driver-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.summary-item .label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.summary-item .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sessions-section {
+  margin-top: var(--spacing-xl);
+}
+
+.sessions-section h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.sessions-table {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sessions-table .MuiTableHead-root {
+  background-color: var(--bg-secondary);
+}
+
+.sessions-table .MuiTableHead-root .MuiTableCell-root {
+  font-weight: 600;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--accent-primary);
+}
+
+.sessions-table .MuiTableBody-root .MuiTableCell-root {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--accent-tertiary);
+}
+
+.win-row {
+  background-color: rgba(232, 255, 169, 0.3);
+}
+
+.podium-row {
+  background-color: rgba(68, 55, 36, 0.1);
+}
+
+.win-row .MuiTableCell-root,
+.podium-row .MuiTableCell-root {
+  font-weight: 500;
+}
+
+.win-row .MuiTableCell-root {
+  color: var(--text-primary);
+}
+
+.left-spacing {
+  padding-left: var(--spacing-xl);
+} 

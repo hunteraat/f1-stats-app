@@ -1,81 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress } from '@mui/material';
-import { useF1Data } from './hooks/useF1Data';
-import TabNavigation from './components/TabNavigation/TabNavigation.jsx';
-import OverviewTab from './components/OverviewTab/OverviewTab.jsx';
-import DriversTab from './components/DriversTab/DriversTab.jsx';
-import SessionsTab from './components/SessionsTab/SessionsTab.jsx';
-import YearSelector from './components/YearSelector/YearSelector.jsx';
-import ErrorMessage from './components/ErrorMessage/ErrorMessage.jsx';
-import SyncStatus from './components/SyncStatus/SyncStatus.jsx';
+import React, { useState } from 'react';
+import { Container, Box } from '@mui/material';
+import './App.css';
+import TabNavigation from './components/TabNavigation/TabNavigation';
+import OverviewTab from './components/OverviewTab/OverviewTab';
+import DriversTab from './components/DriversTab';
+import ConstructorsTab from './components/ConstructorsTab';
+import SessionsTab from './components/SessionsTab/SessionsTab';
+//import YearSelector from './components/YearSelector/YearSelector';
+import { F1DataService } from './services/api/f1-data.service';
+import { TabTypes } from './constants/common-constants';
 
 const App: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [activeTab, setActiveTab] = useState('overview');
-  const { data, isLoading, error, syncStatus } = useF1Data(selectedYear);
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [availableYears, setAvailableYears] = useState<{ year: number; synced: boolean }[]>([]);
+  const [isLoadingYears, setIsLoadingYears] = useState(true);
 
-  // Generate available years (from 2018 to current year)
-  const availableYears = Array.from(
-    { length: new Date().getFullYear() - 2017 },
-    (_, i) => ({
-      year: new Date().getFullYear() - i,
-      synced: true,
-      drivers_count: 20
-    })
-  );
+  // Fetch available years on mount
+  React.useEffect(() => {
+    const fetchYears = async () => {
+      try {
+        const years = await F1DataService.getAvailableYears();
+        setAvailableYears(years);
+      } catch (error) {
+        console.error('Error fetching available years:', error);
+      } finally {
+        setIsLoadingYears(false);
+      }
+    };
+
+    fetchYears();
+  }, []);
 
   const renderContent = () => {
-    if (!data) return null;
-
     switch (activeTab) {
-      case 'overview':
-        return <OverviewTab stats={data} selectedYear={selectedYear} />;
-      case 'drivers':
-        return (
-          <DriversTab
-            drivers={data.drivers}
-            selectedYear={selectedYear}
-            onFetchSessionPositions={() => {}}
-          />
-        );
-      case 'sessions':
-        return <SessionsTab sessions={data.sessions} selectedYear={selectedYear} />;
+      case TabTypes.OVERVIEW:
+        return <OverviewTab selectedYear={selectedYear} onTabChange={setActiveTab} />;
+      case TabTypes.DRIVERS:
+        return <DriversTab selectedYear={selectedYear} />;
+      case TabTypes.CONSTRUCTORS:
+        return <ConstructorsTab selectedYear={selectedYear} />;
+      case TabTypes.SESSIONS:
+        return <SessionsTab selectedYear={selectedYear} />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="app-container">
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-      
-      <main className="main-content">
-        <Container maxWidth="lg">
-          <Box sx={{ pt: 1, pb: 2 }}>
-            {error && <ErrorMessage error={error} onDismiss={() => {}} />}
-
-            <SyncStatus syncStatus={syncStatus} />
-
-            <YearSelector
-              availableYears={availableYears}
-              selectedYear={selectedYear}
-              onYearChange={setSelectedYear}
-              loading={isLoading}
-            />
-
-            {isLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              renderContent()
-            )}
-          </Box>
-        </Container>
-      </main>
+    <div className="app">
+        {/* Year Selector
+        <div className="app-header">
+          <h1>F1 Statistics</h1>
+          <YearSelector
+            availableYears={availableYears}
+            selectedYear={selectedYear}
+            onYearChange={setSelectedYear}
+            loading={isLoadingYears}
+          />
+        </div>
+        */}
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="app-content">
+        {renderContent()}
+      </div>
     </div>
   );
 };

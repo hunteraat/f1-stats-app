@@ -1,32 +1,153 @@
-.overview-section {
-  padding: 1rem;
+.overview-container {
+  padding: var(--spacing-lg);
+}
+
+.overview-header {
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
-  border-radius: 15px;
+  background: var(--bg-tertiary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
   text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.stat-card.clickable {
+  cursor: pointer;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--status-warning);
+  margin: var(--spacing-sm) 0;
+}
+
+.stat-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.session-date {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+  margin-top: var(--spacing-xs);
+}
+
+.ai-question-section {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--bg-primary-transparent);
+  border-radius: var(--border-radius-lg);
   backdrop-filter: blur(10px);
 }
 
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #ffd700;
-  margin-bottom: 0.5rem;
+.ai-question-section h2 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
 }
 
-.stat-label {
-  font-size: 1.1rem;
-  opacity: 0.9;
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 100%;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  height: 400px;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+}
+
+/* Customize scrollbar */
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: var(--accent-tertiary);
+  border-radius: 4px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+}
+
+.message-bubble {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.chat-message.user .message-bubble {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.chat-message.assistant .message-bubble {
+  background: var(--bg-tertiary);
+}
+
+.ai-input-container {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.ai-input {
+  flex: 1;
+}
+
+.error-message {
+  color: var(--status-error);
+  text-align: center;
+  padding: var(--spacing-md);
+  background: var(--bg-primary-transparent);
+  border-radius: var(--border-radius-md);
+  backdrop-filter: blur(10px);
 }
 
 .latest-session {
@@ -35,23 +156,38 @@
 
 .session-name {
   font-size: 1.3rem;
-  color: #ffd700;
-  margin-bottom: 0.5rem;
+  color: var(--status-warning);
+  margin-bottom: var(--spacing-sm);
 }
 
 .session-location {
   font-size: 1.1rem;
-  margin-bottom: 0.3rem;
-}
-
-.session-date {
-  font-size: 1rem;
-  opacity: 0.8;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
 }
 
 .loading {
   text-align: center;
-  padding: 2rem;
+  padding: var(--spacing-xl);
   font-size: 1.2rem;
-  color: #ffd700;
+  color: var(--status-warning);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .ai-question-section {
+    padding: var(--spacing-md);
+  }
+  
+  .chat-message {
+    max-width: 90%;
+  }
+  
+  .ai-input-container {
+    flex-direction: column;
+  }
+  
+  .ai-input {
+    width: 100%;
+  }
 } 

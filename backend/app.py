@@ -35,13 +35,15 @@ def setup_logging(app):
 
 def register_blueprints(app):
     """Register Flask blueprints"""
-    from routes import drivers_bp, sessions_bp, sync_bp, stats_bp, years_bp
+    from routes import drivers_bp, sessions_bp, sync_bp, overview_bp, years_bp, constructors_bp, ai_bp
     
     app.register_blueprint(drivers_bp, url_prefix='/api/drivers')
     app.register_blueprint(sessions_bp, url_prefix='/api/sessions')
     app.register_blueprint(sync_bp, url_prefix='/api/sync')
-    app.register_blueprint(stats_bp, url_prefix='/api/stats')
+    app.register_blueprint(overview_bp, url_prefix='/api/overview')
     app.register_blueprint(years_bp, url_prefix='/api/years')
+    app.register_blueprint(constructors_bp, url_prefix='/api/constructors')
+    app.register_blueprint(ai_bp, url_prefix='/api/ai')
 
 def create_app(debug=False):
     """Create and configure the Flask application"""

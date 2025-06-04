@@ -1,7 +1,12 @@
 import React from 'react';
 import './ErrorMessage.css';
 
-const ErrorMessage = ({ error, onDismiss }) => {
+interface ErrorMessageProps {
+  error: string | null;
+  onDismiss?: () => void;
+}
+
+const ErrorMessage: React.FC<ErrorMessageProps> = ({ error, onDismiss }) => {
   if (!error) return null;
 
   return (

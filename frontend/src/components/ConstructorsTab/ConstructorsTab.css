@@ -1,0 +1,219 @@
+.drivers-section {
+  padding: var(--spacing-xl);
+}
+
+.no-data {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--spacing-xl);
+  font-size: 1.1rem;
+}
+
+.constructors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  padding: var(--spacing-xl);
+}
+
+.constructor-card {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  color: white;
+  position: relative;
+}
+
+.constructor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.constructor-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.constructor-position {
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.constructor-stats {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+}
+
+.constructor-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.constructor-drivers {
+  padding: var(--spacing-md);
+}
+
+.constructor-driver-info {
+  background: rgba(5, 5, 5, 0.3);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.constructor-driver-info:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.constructor-driver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.constructor-driver-name {
+  font-weight: 500;
+}
+
+.constructor-driver-number {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.constructor-driver-stats {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: 0.875rem;
+}
+
+.constructor-driver-stat {
+  opacity: 0.8;
+}
+
+.constructor-zero-value {
+  opacity: 0.5;
+}
+
+.team-container {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.team-header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--accent-tertiary);
+}
+
+.team-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.team-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+}
+
+.position-number {
+  font-weight: bold;
+}
+
+.champion .position-number {
+  color: var(--status-warning);
+}
+
+.podium .position-number {
+  color: var(--text-secondary);
+}
+
+.top-ten .position-number {
+  color: var(--text-tertiary);
+}
+
+.below-ten .position-number {
+  color: var(--text-secondary);
+}
+
+.team-points {
+  color: var(--text-secondary);
+}
+
+.team-drivers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+}
+
+.constructor-driver-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.constructor-driver-header-info {
+  z-index: 1;
+}
+
+.constructor-name-number-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.constructor-name-number-container h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--text-primary);
+}
+
+.constructor-driver-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.constructor-country-flag img {
+  width: 24px;
+  height: 16px;
+  border-radius: var(--border-radius-sm);
+}
+
+.constructor-standing-position {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.constructor-driver-stats-primary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  font-size: 0.875rem;
+}
+
+.constructor-session-count, .constructor-points {
+  color: var(--text-secondary);
+} 

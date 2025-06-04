@@ -1,15 +1,17 @@
 from flask import Blueprint, jsonify, request
 from models import db, Driver, Session, DriverSession
+from utils import add_cors_headers
+from . import overview_bp
 
-stats_bp = Blueprint('stats', __name__)
+overview_bp = add_cors_headers(overview_bp)
 
-@stats_bp.route('/summary', methods=['GET'])
+@overview_bp.route('/', methods=['GET'])
 def get_stats_summary():
     try:
         year = request.args.get('year', type=int)
         
         if year:
-            total_drivers = db.session.query(Driver).join(DriverSession).join(Session).filter(Session.year == year).distinct().count()
+            total_drivers = db.session.query(Driver).join(DriverSession).join(Session).filter(Session.year == year, Driver.is_active == True).distinct().count()
             total_sessions = Session.query.filter(Session.year == year).count()
             latest_session = Session.query.filter(Session.year == year).order_by(Session.date_start.desc()).first()
         else:
