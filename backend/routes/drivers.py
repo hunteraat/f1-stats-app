@@ -1,6 +1,6 @@
-from flask import Blueprint, jsonify, request
-from extensions import db
-from models import DriverStats, DriverSessionStats, Driver
+from flask import jsonify, request
+
+from services import driver_service
 from utils import add_cors_headers
 from . import drivers_bp
 
@@ -13,23 +13,19 @@ def get_drivers():
     Returns driver statistics.
     Can be filtered by year and driver_number.
     """
-    year = request.args.get("year", type=int)
-    driver_number = request.args.get("driver_number", type=int)
+    try:
+        year = request.args.get("year", type=int)
+        driver_number = request.args.get("driver_number", type=int)
+        drivers = driver_service.get_driver_stats(year, driver_number)
 
-    if not year:
-        return jsonify({"error": "Year parameter is required"}), 400
+        if not drivers:
+            return jsonify({"error": "No drivers found for the given criteria"}), 404
 
-    query = DriverStats.query.filter_by(year=year)
-
-    if driver_number:
-        query = query.filter_by(driver_number=driver_number)
-
-    drivers = query.order_by(DriverStats.position).all()
-
-    if not drivers:
-        return jsonify({"error": "No drivers found for the given criteria"}), 404
-
-    return jsonify([d.to_dict() for d in drivers])
+        return jsonify(drivers)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @drivers_bp.route("/sessions", methods=["GET"])
@@ -37,25 +33,19 @@ def get_driver_sessions():
     """
     Returns session statistics for a given driver and year.
     """
-    year = request.args.get("year", type=int)
-    driver_number = request.args.get("driver_number", type=int)
+    try:
+        year = request.args.get("year", type=int)
+        driver_number = request.args.get("driver_number", type=int)
+        sessions = driver_service.get_driver_session_stats(year, driver_number)
 
-    if not year or not driver_number:
-        return (
-            jsonify({"error": "Year and driver_number parameters are required"}),
-            400,
-        )
+        if not sessions:
+            return (
+                jsonify({"error": "No session data found for the given criteria"}),
+                404,
+            )
 
-    sessions = (
-        DriverSessionStats.query.filter_by(driver_number=driver_number, year=year)
-        .order_by(DriverSessionStats.date_start.desc())
-        .all()
-    )
-
-    if not sessions:
-        return (
-            jsonify({"error": "No session data found for the given criteria"}),
-            404,
-        )
-
-    return jsonify([s.to_dict() for s in sessions])
+        return jsonify(sessions)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        return jsonify({"error": "An internal error occurred"}), 500

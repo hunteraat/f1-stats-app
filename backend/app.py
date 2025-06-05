@@ -15,13 +15,10 @@ def setup_logging(app):
 
     # Set up file handler for all logs
     log_file = os.path.join("logs", "f1_stats.log")
-    file_handler = RotatingFileHandler(log_file,
-                                       maxBytes=1024 * 1024,
-                                       backupCount=10)
+    file_handler = RotatingFileHandler(log_file, maxBytes=1024 * 1024, backupCount=10)
     file_handler.setFormatter(
         logging.Formatter(
-            "%(asctime)s %(levelname)s: %(message)s " +
-            "[in %(pathname)s:%(lineno)d]"
+            "%(asctime)s %(levelname)s: %(message)s " + "[in %(pathname)s:%(lineno)d]"
         )
     )
 

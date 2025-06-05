@@ -1,9 +1,8 @@
 import logging
-import os
 
 from flask import jsonify, request
-from openai import OpenAI
 
+from services import ai_service
 from . import ai_bp
 from utils import add_cors_headers
 
@@ -20,38 +19,14 @@ def chat():
         message = data.get("message")
         context_data = data.get("data")
 
-        if not message or not context_data:
-            return jsonify({"error": "Missing required fields"}), 400
+        response_content = ai_service.get_chat_completion(message, context_data)
+        return jsonify({"response": response_content})
 
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-        prompt = (
-            f"You are an F1 statistics assistant. You have access to the "
-            f"following data:\n\n{context_data}\n\nPlease answer the "
-            f"following question based on this data:\n{message}"
-        )
-
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an F1 statistics assistant. Provide clear, "
-                        "concise answers based on the data provided. Refuse "
-                        "to answer questions that are not related to F1 statistics."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.7,
-            max_tokens=500,
-        )
-
-        return jsonify({"response": response.choices[0].message.content})
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
-        logging.error(f"Error in AI chat: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"Error in AI chat: {e}")
+        return jsonify({"error": "An error occurred during AI chat"}), 500
 
 
 @ai_bp.route("/ask", methods=["POST"])
@@ -60,19 +35,14 @@ def ask_question():
     Receives a question from the user, generates a response using OpenAI,
     and returns the answer.
     """
-    data = request.get_json()
-    question = data.get("question")
-
-    if not question:
-        return jsonify({"error": "Question not provided"}), 400
-
     try:
-        # This is where you would integrate with your OpenAI service
-        # For now, we'll just return a dummy response
-        answer = (
-            "This is a dummy answer. In a real application, "
-            "this would be a response from OpenAI."
-        )
+        data = request.get_json()
+        question = data.get("question")
+        answer = ai_service.get_dummy_answer(question)
         return jsonify({"answer": answer})
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logging.error(f"Error in ask_question: {e}")
+        return jsonify({"error": "An error occurred while asking question"}), 500

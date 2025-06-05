@@ -1,35 +1,29 @@
 from flask import jsonify, request
 
-from models import Session, DriverSession, Position
+from services import session_service
 from . import sessions_bp
 
 
 @sessions_bp.route("/", methods=["GET"])
 def get_sessions():
     """Returns a list of all sessions, optionally filtered by year."""
-    year = request.args.get("year", type=int)
-
-    query = Session.query
-    if year:
-        query = query.filter(Session.year == year)
-
-    sessions = query.order_by(Session.date_start.desc()).all()
-    return jsonify([s.to_dict() for s in sessions])
+    try:
+        year = request.args.get("year", type=int)
+        sessions = session_service.get_all_sessions(year)
+        return jsonify(sessions)
+    except Exception:
+        return jsonify({"error": "An internal error occurred"}), 500
 
 
 @sessions_bp.route("/<int:session_id>/positions", methods=["GET"])
 def get_session_positions(session_id):
     """Get position data for a specific session."""
-    driver_session = DriverSession.query.get_or_404(session_id)
-    positions = (
-        Position.query.filter_by(driver_session_id=session_id)
-        .order_by(Position.date)
-        .all()
-    )
-
-    return jsonify(
-        {
-            "driver_session": driver_session.to_dict(),
-            "positions": [p.to_dict() for p in positions],
-        }
-    )
+    try:
+        position_data = session_service.get_session_positions(session_id)
+        if not position_data:
+            return jsonify({"error": "Session not found"}), 404
+        return jsonify(position_data)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        return jsonify({"error": "An internal error occurred"}), 500
