@@ -1,36 +1,52 @@
-from flask import Blueprint, jsonify, request
+from flask import jsonify, request
 from models import db, Driver, Session, DriverSession
 from utils import add_cors_headers
 from . import overview_bp
 
 overview_bp = add_cors_headers(overview_bp)
 
-@overview_bp.route('/', methods=['GET'])
+
+@overview_bp.route("/", methods=["GET"])
 def get_stats_summary():
     try:
-        year = request.args.get('year', type=int)
-        
+        year = request.args.get("year", type=int)
+
         if year:
-            total_drivers = db.session.query(Driver).join(DriverSession).join(Session).filter(Session.year == year, Driver.is_active == True).distinct().count()
+            drivers_q = db.session.query(Driver)
+            drivers_q = drivers_q.join(DriverSession).join(Session)
+            drivers_q = drivers_q.filter(Session.year == year, Driver.is_active)
+            total_drivers = drivers_q.distinct().count()
+
             total_sessions = Session.query.filter(Session.year == year).count()
-            latest_session = Session.query.filter(Session.year == year).order_by(Session.date_start.desc()).first()
+
+            sessions_q = Session.query.filter(Session.year == year)
+            latest_session = sessions_q.order_by(Session.date_start.desc()).first()
         else:
             total_drivers = Driver.query.count()
             total_sessions = Session.query.count()
             latest_session = Session.query.order_by(Session.date_start.desc()).first()
-        
-        active_drivers = total_drivers if year else db.session.query(Driver).join(DriverSession).distinct().count()
-        
-        return jsonify({
-            'total_drivers': total_drivers,
-            'active_drivers': active_drivers,
-            'total_sessions': total_sessions,
-            'latest_session': {
-                'name': latest_session.session_name if latest_session else None,
-                'location': latest_session.location if latest_session else None,
-                'date': latest_session.date_start.isoformat() if latest_session and latest_session.date_start else None
-            } if latest_session else None,
-            'year': year
-        })
+
+        active_drivers_q = db.session.query(Driver).join(DriverSession)
+        active_drivers_count = active_drivers_q.distinct().count()
+        active_drivers = total_drivers if year else active_drivers_count
+
+        latest_session_data = None
+        if latest_session:
+            date_start = latest_session.date_start
+            latest_session_data = {
+                "name": latest_session.session_name,
+                "location": latest_session.location,
+                "date": date_start.isoformat() if date_start else None,
+            }
+
+        return jsonify(
+            {
+                "total_drivers": total_drivers,
+                "active_drivers": active_drivers,
+                "total_sessions": total_sessions,
+                "latest_session": latest_session_data,
+                "year": year,
+            }
+        )
     except Exception as e:
-        return jsonify({'error': str(e)}), 500 
+        return jsonify({"error": str(e)}), 500

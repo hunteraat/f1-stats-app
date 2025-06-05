@@ -1,27 +1,27 @@
-import os
-import sys
-from flask import Blueprint, jsonify
-from sqlalchemy import func
-from models import db, YearData
-from utils import add_cors_headers
+from flask import jsonify
+from models import YearData
 from . import years_bp
 
-years_bp = add_cors_headers(years_bp)
 
-@years_bp.route('/', methods=['GET'])
+@years_bp.route("/", methods=["GET"])
 def get_available_years():
     """Get list of years with sync status"""
-    years = []
     synced_years = {yd.year: yd for yd in YearData.query.all()}
-    
+    years_data = []
     for year in range(2018, 2026):
-        year_info = {
-            'year': year,
-            'synced': year in synced_years,
-            'last_synced': synced_years[year].last_synced.isoformat() if year in synced_years else None,
-            'drivers_count': synced_years[year].drivers_count if year in synced_years else 0,
-            'sessions_count': synced_years[year].sessions_count if year in synced_years else 0
-        }
-        years.append(year_info)
-    
-    return jsonify(years) 
+        year_info = {"year": year, "synced": year in synced_years}
+        if year in synced_years:
+            synced_year = synced_years[year]
+            last_synced = synced_year.last_synced
+            year_info["last_synced"] = (
+                last_synced.isoformat() if last_synced else None
+            )
+            year_info["drivers_count"] = synced_year.drivers_count
+            year_info["sessions_count"] = synced_year.sessions_count
+        else:
+            year_info["last_synced"] = None
+            year_info["drivers_count"] = 0
+            year_info["sessions_count"] = 0
+        years_data.append(year_info)
+
+    return jsonify(years_data)
