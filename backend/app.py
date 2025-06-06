@@ -53,14 +53,17 @@ def register_blueprints(app):
     app.register_blueprint(ai_bp, url_prefix="/api/ai")
 
 
-def create_app(config_name=None):
+def create_app(config_data=None):
     """Create and configure the Flask application"""
-    if config_name is None:
-        config_name = os.environ.get("FLASK_ENV", "default")
-
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
-    config[config_name].init_app(app)
+
+    if config_data and isinstance(config_data, dict):
+        app.config.from_mapping(config_data)
+    else:
+        config_name = config_data or os.environ.get("FLASK_ENV", "default")
+        app.config.from_object(config[config_name])
+        if config_name in config:
+            config[config_name].init_app(app)
 
     # Configure Flask to not redirect on missing trailing slashes
     app.url_map.strict_slashes = False

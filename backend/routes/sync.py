@@ -71,7 +71,7 @@ def clear_lap_data(year):
             {
                 "success": True,
                 "message": (
-                    f"Successfully deleted {deleted_count} " + "lap records for {year}"
+                    f"Successfully deleted {deleted_count} " f"lap records for {year}"
                 ),
             }
         )

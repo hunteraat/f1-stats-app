@@ -4,9 +4,13 @@ from models import YearData
 def get_available_years_with_details():
     """
     Generates a list of years from 2018 to 2025 with their sync status
-    and other details from the database.
+    and other details from the database. This date range is arbitrary
+    and can be changed if needed. Currently only 2025 data is available.
     """
-    synced_years = {yd.year: yd for yd in YearData.query.all()}
+    all_year_data = YearData.query.all()
+    synced_years = {
+        int(yd.year): yd for yd in all_year_data if hasattr(yd, "year") and yd.year
+    }
     years_data = []
 
     for year in range(2018, 2026):

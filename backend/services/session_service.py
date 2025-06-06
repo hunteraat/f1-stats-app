@@ -1,3 +1,4 @@
+from extensions import db
 from models import Session, DriverSession, Position
 
 
@@ -20,7 +21,7 @@ def get_session_positions(session_id):
     if not session_id:
         raise ValueError("session_id parameter is required")
 
-    driver_session = DriverSession.query.get(session_id)
+    driver_session = db.session.get(DriverSession, session_id)
     if not driver_session:
         return None
 

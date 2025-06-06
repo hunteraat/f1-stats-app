@@ -32,7 +32,8 @@ class TestingConfig(Config):
     """Testing configuration."""
 
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"  # Use in-memory database for tests
+    # Use in-memory database for tests
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False  # Disable CSRF forms in testing
 
 

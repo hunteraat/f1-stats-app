@@ -25,7 +25,8 @@ def get_chat_completion(message, context_data):
                 "content": (
                     "You are an F1 statistics assistant. Provide clear, "
                     "concise answers based on the data provided. Refuse "
-                    "to answer questions that are not related to F1 statistics."
+                    "to answer questions that are not related to F1 "
+                    "statistics."
                 ),
             },
             {"role": "user", "content": prompt},

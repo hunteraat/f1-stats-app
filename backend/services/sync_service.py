@@ -63,16 +63,6 @@ async def fetch_data_async(session, endpoint, params, max_retries=3, initial_del
     return None
 
 
-def _update_sync_progress(year_data, progress, message=None):
-    """Update sync progress and message"""
-    year_data.sync_progress = progress
-    if message:
-        year_data.sync_message = message
-        log_msg = f"Sync for {year_data.year}: {progress}% - {message}"
-        current_app.logger.info(log_msg)
-    db.session.commit()
-
-
 async def run_sync_for_year(year):
     """Orchestrates the data synchronization for a given year."""
     logger = current_app.logger
@@ -86,7 +76,7 @@ async def run_sync_for_year(year):
         raise Exception("Sync for this year is already in progress.")
 
     year_data.sync_status = "in_progress"
-    year_data.sync_progress = 0
+    year_data.sync_message = "Starting sync..."
     db.session.commit()
 
     try:
@@ -95,7 +85,7 @@ async def run_sync_for_year(year):
         year_data.sync_status = "completed"
         year_data.sync_message = "Sync completed successfully."
         year_data.last_synced = datetime.utcnow()
-        year_data.sync_progress = 100
+        year_data.last_incremental_sync = datetime.utcnow()
         db.session.commit()
         logger.info(f"Sync for year {year} completed successfully.")
         return {"success": True, "message": f"Sync for {year} completed."}
@@ -111,71 +101,96 @@ async def run_sync_for_year(year):
 
 async def _fetch_and_process_data(year, year_data):
     """Handles the core data fetching and processing logic."""
-    _update_sync_progress(year_data, 5, "Initializing...")
+    logger = current_app.logger
+    logger.info("Initializing sync...")
+
     async with aiohttp.ClientSession() as session:
         sessions_data = await _get_sessions_data(session, year, year_data)
         if not sessions_data:
             raise Exception(f"No sessions found for year {year}")
 
-        drivers_data = await _get_drivers_data(session, year, sessions_data, year_data)
+        drivers_data = await _get_drivers_data(session, year, sessions_data)
         if not drivers_data:
             raise Exception(f"No drivers found for year {year}")
 
-        _update_sync_progress(year_data, 40, "Processing drivers...")
+        logger.info("Processing drivers...")
         _process_drivers(drivers_data)
 
-        _update_sync_progress(year_data, 60, "Processing sessions...")
+        logger.info("Processing sessions...")
         _process_sessions(sessions_data, year)
 
-        _update_sync_progress(year_data, 70, "Processing positions " + "and laps...")
+        logger.info("Processing positions and laps...")
         await _process_positions_and_laps(session, year, year_data)
 
 
 async def _get_sessions_data(session, year, year_data):
     """Fetches session data from cache or API."""
     logger = current_app.logger
-    cached_sessions = SessionKeyCache.query.filter_by(year=year).all()
-    if cached_sessions:
-        logger.info(f"Using {len(cached_sessions)} cached sessions for {year}")
+
+    # Check if we need to get sessions based on incremental sync
+    is_current_year = year == datetime.now(timezone.utc).year
+    should_refresh_sessions = True
+
+    if is_current_year and year_data.last_incremental_sync:
+        # For current year with previous sync, check if we have recent cached sessions
+        recent_cached = SessionKeyCache.query.filter_by(year=year).all()
+        if recent_cached:
+            logger.info(
+                f"Using {len(recent_cached)} cached sessions for incremental sync"
+            )
+            should_refresh_sessions = False
+    else:
+        # For historical years, check if we have cached sessions
+        cached_sessions = SessionKeyCache.query.filter_by(year=year).all()
+        if cached_sessions:
+            logger.info(f"Using {len(cached_sessions)} cached sessions for {year}")
+            return [s.to_dict() for s in cached_sessions]
+
+    if should_refresh_sessions:
+        logger.info("Fetching sessions from API...")
+        sessions_data = await fetch_data_async(session, "sessions", {"year": year})
+        if not sessions_data:
+            return None
+
+        logger.info(f"Caching {len(sessions_data)} sessions for {year}")
+        for sess_data in sessions_data:
+            date_start = sess_data.get("date_start")
+            new_entry_data = {
+                "year": year,
+                "session_key": sess_data["session_key"],
+                "session_name": sess_data.get("session_name"),
+                "session_type": sess_data.get("session_type"),
+                "date_start": (
+                    make_aware(
+                        datetime.fromisoformat(date_start.replace("Z", "+00:00"))
+                    )
+                    if date_start
+                    else None
+                ),
+                "location": sess_data.get("location"),
+            }
+            existing_entry = SessionKeyCache.query.filter_by(
+                year=year, session_key=sess_data["session_key"]
+            ).first()
+            if existing_entry:
+                for key, value in new_entry_data.items():
+                    setattr(existing_entry, key, value)
+            else:
+                new_entry = SessionKeyCache(**new_entry_data)
+                db.session.add(new_entry)
+
+        db.session.commit()
+        return sessions_data
+    else:
+        # Return cached sessions for incremental sync
+        cached_sessions = SessionKeyCache.query.filter_by(year=year).all()
         return [s.to_dict() for s in cached_sessions]
 
-    _update_sync_progress(year_data, 10, "Fetching sessions from API...")
-    sessions_data = await fetch_data_async(session, "sessions", {"year": year})
-    if not sessions_data:
-        return None
 
-    logger.info(f"Caching {len(sessions_data)} sessions for {year}")
-    for sess_data in sessions_data:
-        date_start = sess_data.get("date_start")
-        new_entry_data = {
-            "year": year,
-            "session_key": sess_data["session_key"],
-            "session_name": sess_data.get("session_name"),
-            "session_type": sess_data.get("session_type"),
-            "date_start": (
-                make_aware(datetime.fromisoformat(date_start.replace("Z", "+00:00")))
-                if date_start
-                else None
-            ),
-            "location": sess_data.get("location"),
-        }
-        existing_entry = SessionKeyCache.query.filter_by(
-            year=year, session_key=sess_data["session_key"]
-        ).first()
-        if existing_entry:
-            for key, value in new_entry_data.items():
-                setattr(existing_entry, key, value)
-        else:
-            new_entry = SessionKeyCache(**new_entry_data)
-            db.session.add(new_entry)
-
-    db.session.commit()
-    return sessions_data
-
-
-async def _get_drivers_data(session, year, sessions_data, year_data):
+async def _get_drivers_data(session, year, sessions_data):
     """Fetches driver data for all sessions in a year."""
-    _update_sync_progress(year_data, 20, "Fetching drivers for each session...")
+    logger = current_app.logger
+    logger.info("Fetching drivers for each session...")
     session_keys = [s["session_key"] for s in sessions_data]
     tasks = [
         fetch_data_async(session, "drivers", {"session_key": key})
@@ -202,7 +217,6 @@ def _process_drivers(drivers_data):
         driver.team_colour = driver_data.get("team_colour")
         driver.country_code = driver_data.get("country_code")
         driver.headshot_url = driver_data.get("headshot_url")
-        driver.last_updated = datetime.utcnow()
     db.session.commit()
 
 
@@ -230,35 +244,44 @@ def _process_sessions(sessions_data, year):
 
 async def _process_positions_and_laps(session, year, year_data):
     """Fetches and processes position and lap data for a given year."""
+    logger = current_app.logger
     is_current_year = year == datetime.now(timezone.utc).year
-    start_date_dt = (
-        make_aware(year_data.last_incremental_sync)
-        if is_current_year and year_data.last_incremental_sync
-        else datetime(year, 1, 1, tzinfo=timezone.utc)
-    )
+
+    # Determine the date range for fetching data
+    if is_current_year and year_data.last_incremental_sync:
+        # For incremental sync, start from the last sync time
+        start_date_dt = make_aware(year_data.last_incremental_sync)
+        logger.info(f"Performing incremental sync from {start_date_dt.isoformat()}")
+    else:
+        # For full sync, start from beginning of year
+        start_date_dt = datetime(year, 1, 1, tzinfo=timezone.utc)
+        logger.info(f"Performing full sync for {year}")
+
     end_date_dt = (
         datetime.now(timezone.utc)
         if is_current_year
         else datetime(year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
     )
+
     start_date, end_date = start_date_dt.isoformat(), end_date_dt.isoformat()
 
+    # Fetch position and lap data
     pos_task = fetch_data_by_month(session, "position", start_date, end_date, "date")
     lap_task = fetch_data_by_month(session, "laps", start_date, end_date, "date_start")
     positions_data, laps_data = await asyncio.gather(pos_task, lap_task)
 
     if positions_data:
-        msg = f"Processing {len(positions_data)} position records..."
-        _update_sync_progress(year_data, 80, msg)
+        logger.info(f"Processing {len(positions_data)} position records...")
         _process_positions_batch(positions_data)
 
     if laps_data:
-        msg = f"Processing {len(laps_data)} lap records..."
-        _update_sync_progress(year_data, 90, msg)
+        logger.info(f"Processing {len(laps_data)} lap records...")
         _process_laps_batch(laps_data)
 
+    # Update the last incremental sync time for current year
     if is_current_year:
         year_data.last_incremental_sync = datetime.utcnow()
+
     db.session.commit()
 
 
@@ -296,18 +319,24 @@ def _process_positions_batch(positions_data):
         driver_session_id = _get_driver_session_id(cache, session_key, driver_number)
         if not driver_session_id:
             logger.warning(
-                f"Could not find driver_session for {session_key},"
-                + f" {driver_number}"
+                f"Could not find driver_session for {session_key}, " f"{driver_number}"
             )
             continue
 
         date = make_aware(datetime.fromisoformat(pos["date"].replace("Z", "+00:00")))
-        position = Position(
-            driver_session_id=driver_session_id,
-            date=date,
-            position=pos["position"],
-        )
-        db.session.add(position)
+
+        # Check if position already exists to avoid duplicates in incremental sync
+        existing_position = Position.query.filter_by(
+            driver_session_id=driver_session_id, date=date, position=pos["position"]
+        ).first()
+
+        if not existing_position:
+            position = Position(
+                driver_session_id=driver_session_id,
+                date=date,
+                position=pos["position"],
+            )
+            db.session.add(position)
     db.session.commit()
 
 
@@ -327,17 +356,22 @@ def _process_laps_batch(laps_data):
         driver_session_id = _get_driver_session_id(cache, session_key, driver_number)
         if not driver_session_id:
             logger.warning(
-                f"Could not find driver_session for {session_key},"
-                + f" {driver_number}"
+                f"Could not find driver_session for {session_key}, " f"{driver_number}"
             )
             continue
 
-        new_lap = Lap(
-            driver_session_id=driver_session_id,
-            lap_number=lap.get("lap_number", 0),
-            lap_time=lap.get("lap_duration"),
-        )
-        db.session.add(new_lap)
+        # Check if lap already exists to avoid duplicates in incremental sync
+        existing_lap = Lap.query.filter_by(
+            driver_session_id=driver_session_id, lap_number=lap.get("lap_number", 0)
+        ).first()
+
+        if not existing_lap:
+            new_lap = Lap(
+                driver_session_id=driver_session_id,
+                lap_number=lap.get("lap_number", 0),
+                lap_time=lap.get("lap_duration"),
+            )
+            db.session.add(new_lap)
     db.session.commit()
 
 

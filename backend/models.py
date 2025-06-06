@@ -1,4 +1,3 @@
-from datetime import datetime
 from extensions import db
 
 
@@ -10,12 +9,23 @@ class Driver(db.Model):
     team_colour = db.Column(db.String(7), nullable=True)
     country_code = db.Column(db.String(3), nullable=True)
     headshot_url = db.Column(db.String(255), nullable=True)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=False)
 
     sessions = db.relationship(
         "DriverSession", back_populates="driver", cascade="all, delete-orphan"
     )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "driver_number": self.driver_number,
+            "full_name": self.full_name,
+            "team_name": self.team_name,
+            "team_colour": self.team_colour,
+            "country_code": self.country_code,
+            "headshot_url": self.headshot_url,
+            "is_active": self.is_active,
+        }
 
 
 class Session(db.Model):
@@ -36,6 +46,22 @@ class Session(db.Model):
         "DriverSession", back_populates="session", cascade="all, delete-orphan"
     )
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "session_key": self.session_key,
+            "session_name": self.session_name,
+            "date_start": self.date_start.isoformat() if self.date_start else None,
+            "date_end": self.date_end.isoformat() if self.date_end else None,
+            "gmt_offset": self.gmt_offset,
+            "session_type": self.session_type,
+            "meeting_key": self.meeting_key,
+            "location": self.location,
+            "country_name": self.country_name,
+            "circuit_short_name": self.circuit_short_name,
+            "year": self.year,
+        }
+
 
 class DriverSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,6 +81,15 @@ class DriverSession(db.Model):
 
     __table_args__ = (db.UniqueConstraint("driver_id", "session_id"),)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "driver_id": self.driver_id,
+            "session_id": self.session_id,
+            "final_position": self.final_position,
+            "fastest_lap": self.fastest_lap,
+        }
+
 
 class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -65,6 +100,14 @@ class Position(db.Model):
     position = db.Column(db.Integer, nullable=False)
 
     driver_session = db.relationship("DriverSession", back_populates="positions")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "driver_session_id": self.driver_session_id,
+            "date": self.date.isoformat() if self.date else None,
+            "position": self.position,
+        }
 
 
 class Lap(db.Model):
@@ -97,6 +140,23 @@ class YearData(db.Model):
     drivers_count = db.Column(db.Integer)
     sessions_count = db.Column(db.Integer)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "year": self.year,
+            "sync_status": self.sync_status,
+            "sync_progress": self.sync_progress,
+            "sync_message": self.sync_message,
+            "last_synced": self.last_synced.isoformat() if self.last_synced else None,
+            "last_incremental_sync": (
+                self.last_incremental_sync.isoformat()
+                if self.last_incremental_sync
+                else None
+            ),
+            "drivers_count": self.drivers_count,
+            "sessions_count": self.sessions_count,
+        }
+
 
 class SessionKeyCache(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -106,11 +166,19 @@ class SessionKeyCache(db.Model):
     session_type = db.Column(db.String(50))
     date_start = db.Column(db.DateTime)
     location = db.Column(db.String(100))
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (
         db.UniqueConstraint("year", "session_key", name="unique_session_key_per_year"),
     )
+
+    def to_dict(self):
+        return {
+            "session_key": self.session_key,
+            "session_name": self.session_name,
+            "session_type": self.session_type,
+            "date_start": self.date_start.isoformat() if self.date_start else None,
+            "location": self.location,
+        }
 
 
 class ConstructorStats(db.Model):
@@ -127,6 +195,19 @@ class ConstructorStats(db.Model):
     year = db.Column(db.Integer, nullable=False, primary_key=True)
 
     __table_args__ = (db.UniqueConstraint("team_name", "year"),)
+
+    def to_dict(self):
+        return {
+            "team_name": self.team_name,
+            "team_colour": self.team_colour,
+            "position": self.position,
+            "points": self.points,
+            "podiums": self.podiums,
+            "wins": self.wins,
+            "fastest_laps": self.fastest_laps,
+            "races": self.races,
+            "year": self.year,
+        }
 
 
 class DriverStats(db.Model):
@@ -150,6 +231,25 @@ class DriverStats(db.Model):
 
     __table_args__ = (db.UniqueConstraint("driver_number", "year"),)
 
+    def to_dict(self):
+        return {
+            "driver_number": self.driver_number,
+            "full_name": self.full_name,
+            "team_name": self.team_name,
+            "team_colour": self.team_colour,
+            "races": self.races,
+            "country_code": self.country_code,
+            "headshot_url": self.headshot_url,
+            "position": self.position,
+            "podiums": self.podiums,
+            "wins": self.wins,
+            "fastest_laps": self.fastest_laps,
+            "points": self.points,
+            "average_position": self.average_position,
+            "is_active": self.is_active,
+            "year": self.year,
+        }
+
 
 class DriverSessionStats(db.Model):
     __tablename__ = "driver_session_stats"
@@ -171,3 +271,18 @@ class DriverSessionStats(db.Model):
             "driver_number", "session_name", "session_type", "date_start", "year"
         ),
     )
+
+    def to_dict(self):
+        return {
+            "driver_number": self.driver_number,
+            "full_name": self.full_name,
+            "team_name": self.team_name,
+            "session_name": self.session_name,
+            "session_type": self.session_type,
+            "location": self.location,
+            "date_start": self.date_start.isoformat() if self.date_start else None,
+            "final_position": self.final_position,
+            "fastest_lap": self.fastest_lap,
+            "points": self.points,
+            "year": self.year,
+        }
