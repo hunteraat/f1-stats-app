@@ -1,9 +1,20 @@
-import { BaseApiService } from './base-api.service';
 import { API_CONFIG } from '../../constants/config';
-import { Driver, Session, Overview, SyncResult, SyncStatus, Constructor, DriverSession } from '../../types/models';
+import {
+  Driver,
+  Session,
+  Overview,
+  SyncResult,
+  SyncStatus,
+  Constructor,
+  DriverSession,
+} from '../../types/models';
+
+import { BaseApiService } from './base-api.service';
 
 export class F1DataService extends BaseApiService {
-  static async getAvailableYears(): Promise<{ year: number; synced: boolean }[]> {
+  static async getAvailableYears(): Promise<
+    { year: number; synced: boolean }[]
+  > {
     return this.request(API_CONFIG.ENDPOINTS.YEARS);
   }
 
@@ -12,7 +23,10 @@ export class F1DataService extends BaseApiService {
     return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}${params}`);
   }
 
-  static async getDriverSessions(driverNumber: number, year?: number): Promise<DriverSession[]> {
+  static async getDriverSessions(
+    driverNumber: number,
+    year?: number
+  ): Promise<DriverSession[]> {
     let params = `?driver_number=${driverNumber}`;
     if (year) {
       params += `&year=${year}`;
@@ -26,7 +40,9 @@ export class F1DataService extends BaseApiService {
   }
 
   static async getSessionPositions(sessionId: string): Promise<any> {
-    return this.request(`${API_CONFIG.ENDPOINTS.SESSIONS}/${sessionId}/positions`);
+    return this.request(
+      `${API_CONFIG.ENDPOINTS.SESSIONS}/${sessionId}/positions`
+    );
   }
 
   static async getOverview(year?: number): Promise<Overview> {
@@ -48,4 +64,4 @@ export class F1DataService extends BaseApiService {
   static async getSyncStatus(year: number): Promise<SyncStatus> {
     return this.request(`${API_CONFIG.ENDPOINTS.SYNC}/status/${year}`);
   }
-} 
+}

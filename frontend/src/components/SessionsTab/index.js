@@ -1,1 +1,1 @@
-export { default } from './SessionsTab'; 
+export { default } from './SessionsTab';

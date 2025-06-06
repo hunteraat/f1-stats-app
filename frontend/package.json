@@ -26,14 +26,14 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint src --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write src/**/*.{js,jsx,ts,tsx,css,md,json}",
+    "format:check": "prettier --check src/**/*.{js,jsx,ts,tsx,css,md,json}",
+    "prepare": "husky install"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
+
   "browserslist": {
     "production": [
       ">0.2%",
@@ -46,5 +46,14 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5000",
+  "devDependencies": {
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.4.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3"
+  }
 }

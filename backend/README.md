@@ -36,7 +36,6 @@ The Flask backend for the F1 Stats App.
     Create a `.env` file in the `backend` directory and add the following:
 
     ```
-    SECRET_KEY='a-strong-secret-key'
     OPENAI_API_KEY='your-openai-api-key'
     # For development, a default database is configured.
     # For production, you can add:

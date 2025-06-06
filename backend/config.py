@@ -10,9 +10,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     """Base configuration class."""
 
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    OPENAI_MODEL = "gpt-4o"
     OPENF1_BASE_URL = "https://api.openf1.org/v1"
 
     @staticmethod

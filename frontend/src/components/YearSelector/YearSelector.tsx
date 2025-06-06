@@ -13,20 +13,20 @@ interface YearSelectorProps {
   loading: boolean;
 }
 
-const YearSelector: React.FC<YearSelectorProps> = ({ 
-  availableYears, 
-  selectedYear, 
-  onYearChange, 
-  loading 
+const YearSelector: React.FC<YearSelectorProps> = ({
+  availableYears,
+  selectedYear,
+  onYearChange,
+  loading,
 }) => {
   return (
     <div className="year-selector">
       <label htmlFor="year-select">
         <span className="year-label">F1 Season: </span>
-        <select 
+        <select
           id="year-select"
-          value={selectedYear} 
-          onChange={(e) => onYearChange(parseInt(e.target.value))}
+          value={selectedYear}
+          onChange={e => onYearChange(parseInt(e.target.value))}
           disabled={loading}
           className="year-select"
         >
@@ -37,12 +37,11 @@ const YearSelector: React.FC<YearSelectorProps> = ({
               <option key={yearInfo.year} value={yearInfo.year}>
                 {yearInfo.year}
               </option>
-            ))
-          }
+            ))}
         </select>
       </label>
     </div>
   );
 };
 
-export default YearSelector; 
+export default YearSelector;

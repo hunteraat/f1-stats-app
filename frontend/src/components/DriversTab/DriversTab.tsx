@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DriversTab.css';
 import { Box, CircularProgress } from '@mui/material';
-import { getCountryFlagUrl } from '../../utils/flags';
+
 import { F1DataService } from '../../services/api/f1-data.service';
 import DriverDetails from '../DriverDetails/DriverDetails';
 import { Driver, DriverSession } from '../../types/models';
@@ -40,7 +40,10 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
     setIsLoadingSessions(true);
     setError(null);
     try {
-      const sessions = await F1DataService.getDriverSessions(driver.driver_number, selectedYear);
+      const sessions = await F1DataService.getDriverSessions(
+        driver.driver_number,
+        selectedYear
+      );
       setDriverSessions(sessions);
       setSelectedDriver(driver);
     } catch (err: any) {
@@ -57,7 +60,12 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -65,7 +73,12 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
 
   if (error) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
         <div className="error-message">{error}</div>
       </Box>
     );
@@ -87,19 +100,22 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
     <div className="drivers-container">
       <h1 className="overview-header">{selectedYear} Season Drivers</h1>
       <div className="drivers-grid">
-        {drivers.map((driver) => (
+        {drivers.map(driver => (
           <div
             key={driver.driver_number}
             className="driver-card"
             onClick={() => handleDriverClick(driver)}
             style={{ backgroundColor: formatTeamColor(driver.team_colour) }}
           >
-            <div className="driver-background" style={{
-              backgroundImage: `url(${driver.headshot_url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }} />
-            
+            <div
+              className="driver-background"
+              style={{
+                backgroundImage: `url(${driver.headshot_url?.replace('1col/image.png', '3col/image.png') || ''})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+
             <div className="driver-top-stats">
               <div className="points">{driver.points} pts</div>
               <div className="position">P{driver.position}</div>
@@ -108,20 +124,27 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
             <div className="driver-info-container">
               <div className="driver-info">
                 <div className="driver-name">
-                  {driver.full_name} <span className="driver-number">#{driver.driver_number}</span>
+                  {driver.full_name}{' '}
+                  <span className="driver-number">#{driver.driver_number}</span>
                 </div>
                 <div className="team-name">{driver.team_name}</div>
               </div>
 
               <div className="driver-stats">
                 <div className="stat-circle">
-                  <span className="stat-value" title="Wins">🏆{driver.wins}</span>
+                  <span className="stat-value" title="Wins">
+                    🏆{driver.wins}
+                  </span>
                 </div>
                 <div className="stat-circle">
-                  <span className="stat-value" title="Podiums">🥈{driver.podiums}</span>
+                  <span className="stat-value" title="Podiums">
+                    🥈{driver.podiums}
+                  </span>
                 </div>
                 <div className="stat-circle">
-                  <span className="stat-value" title="Fastest Laps">⚡{driver.fastest_laps}</span>
+                  <span className="stat-value" title="Fastest Laps">
+                    ⚡{driver.fastest_laps}
+                  </span>
                 </div>
               </div>
             </div>
@@ -132,4 +155,4 @@ const DriversTab: React.FC<DriversTabProps> = ({ selectedYear }) => {
   );
 };
 
-export default DriversTab; 
+export default DriversTab;

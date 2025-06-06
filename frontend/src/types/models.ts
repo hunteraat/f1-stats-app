@@ -57,15 +57,15 @@ export interface DriverSession {
 }
 
 export interface Constructor {
-    team_name: string;
-    team_colour: string;
-    position: number;
-    points: number;
-    wins: number;
-    podiums: number;
-    fastest_laps: number;
-    year: number;
-    races: number;
+  team_name: string;
+  team_colour: string;
+  position: number;
+  points: number;
+  wins: number;
+  podiums: number;
+  fastest_laps: number;
+  year: number;
+  races: number;
 }
 
 export interface SyncResponse {
@@ -102,4 +102,4 @@ export interface SyncResult {
   drivers_processed: number;
   sessions_processed: number;
   status: 'not_started' | 'in_progress' | 'completed' | 'error';
-} 
+}

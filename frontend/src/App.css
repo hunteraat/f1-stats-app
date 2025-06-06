@@ -9,6 +9,7 @@
   background: var(--bg-primary);
   color: var(--text-primary);
   display: flex;
+  justify-content: center;
 }
 
 .app-header {
@@ -19,7 +20,6 @@
 
 .app-content {
   max-width: 1200px;
-  margin: 0 auto;
   padding: var(--spacing-lg);
   position: relative;
   flex: 1;

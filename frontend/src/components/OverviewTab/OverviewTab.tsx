@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, TextField, Button, Paper } from '@mui/material';
+import { Box, CircularProgress, TextField, Paper } from '@mui/material';
+
 import { F1DataService } from '../../services/api/f1-data.service';
 import { AIChatService, ChatMessage } from '../../services/api/ai-chat.service';
 import './OverviewTab.css';
@@ -11,7 +12,10 @@ interface OverviewTabProps {
   onTabChange: (tab: string) => void;
 }
 
-const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) => {
+const OverviewTab: React.FC<OverviewTabProps> = ({
+  selectedYear,
+  onTabChange,
+}) => {
   const [stats, setStats] = useState<Overview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +31,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
         const response = await F1DataService.getOverview(selectedYear);
         setStats(response);
       } catch (error) {
-        console.error('Error fetching stats:', error);
         setError('Failed to fetch statistics');
       } finally {
         setIsLoading(false);
@@ -38,24 +41,49 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
   }, [selectedYear]);
 
   const handleSendMessage = async () => {
-    if (!aiQuestion.trim()) return;
+    if (!aiQuestion.trim()) {
+      return;
+    }
 
+    const userMessage: ChatMessage = { role: 'user', content: aiQuestion };
+    const newMessages: ChatMessage[] = [...chatMessages, userMessage];
+
+    setChatMessages(newMessages);
+    setAiQuestion('');
     setIsProcessing(true);
+    
+    // Add loading message
+    setChatMessages(prev => [...prev, { role: 'assistant', content: '...' }]);
+
     try {
-      const response = await AIChatService.sendMessage(aiQuestion, selectedYear);
-      setChatMessages(prev => [
-        { role: 'assistant', content: response },
-        { role: 'user', content: aiQuestion },
-        ...prev
-      ]);
-      setAiQuestion('');
+      const response = await AIChatService.sendMessage(newMessages, selectedYear);
+      
+      // Replace loading message with actual response
+      setChatMessages(prev => {
+        const updatedMessages = [...prev];
+        const loadingIndex = updatedMessages.findIndex(
+          msg => msg.role === 'assistant' && msg.content === '...'
+        );
+        if (loadingIndex !== -1) {
+          updatedMessages[loadingIndex] = { role: 'assistant', content: response };
+        }
+        return updatedMessages;
+      });
     } catch (error) {
-      console.error('Error sending message:', error);
-      setChatMessages(prev => [
-        { role: 'assistant', content: 'Sorry, I encountered an error while processing your request.' },
-        { role: 'user', content: aiQuestion },
-        ...prev
-      ]);
+      // Replace loading message with error
+      setChatMessages(prev => {
+        const updatedMessages = [...prev];
+        const loadingIndex = updatedMessages.findIndex(
+          msg => msg.role === 'assistant' && msg.content === '...'
+        );
+        if (loadingIndex !== -1) {
+          updatedMessages[loadingIndex] = {
+            role: 'assistant',
+            content: 'Sorry, I encountered an error while processing your request.',
+          };
+        }
+        return updatedMessages;
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -91,18 +119,27 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
   return (
     <div className="overview-container">
       <h1 className="overview-header">{selectedYear} Season Overview</h1>
-      
+
       <div className="stats-grid">
-        <div className="stat-card clickable" onClick={() => onTabChange(TabTypes.DRIVERS)}>
+        <div
+          className="stat-card clickable"
+          onClick={() => onTabChange(TabTypes.DRIVERS)}
+        >
           <h3>Total Drivers</h3>
           <div className="stat-value">{stats.total_drivers}</div>
         </div>
-        <div className="stat-card clickable" onClick={() => onTabChange(TabTypes.SESSIONS)}>
+        <div
+          className="stat-card clickable"
+          onClick={() => onTabChange(TabTypes.SESSIONS)}
+        >
           <h3>Total Sessions</h3>
           <div className="stat-value">{stats.total_sessions}</div>
         </div>
         {stats.latest_session && (
-          <div className="stat-card clickable" onClick={() => onTabChange(TabTypes.SESSIONS)}>
+          <div
+            className="stat-card clickable"
+            onClick={() => onTabChange(TabTypes.SESSIONS)}
+          >
             <h3>Latest Session</h3>
             <div className="stat-value">{stats.latest_session.name}</div>
             <div className="stat-subtitle">
@@ -118,25 +155,36 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
       </div>
 
       <div className="ai-question-section">
-        <h2>Ask AI:</h2>
+        <h2>Argue with George, the European snob:</h2>
         <div className="chat-container">
           <div className="ai-input-container">
             <TextField
               fullWidth
               variant="outlined"
-              placeholder="Ask any question about the current F1 season..."
+              placeholder="Raise an opinion about the current F1 season..."
               value={aiQuestion}
-              onChange={(e) => setAiQuestion(e.target.value)}
+              onChange={e => setAiQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isProcessing}
               className="ai-input"
             />
           </div>
           <div className="chat-messages">
-            {chatMessages.map((message, index) => (
+            {chatMessages.slice().reverse().map((message, index) => (
               <div key={index} className={`chat-message ${message.role}`}>
-                <Paper elevation={1} className="message-bubble">
-                  {message.content}
+                <Paper 
+                  elevation={1} 
+                  className={`message-bubble ${message.content === '...' ? 'loading' : ''}`}
+                >
+                  {message.content === '...' ? (
+                    <div className="loading-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                  ) : (
+                    message.content
+                  )}
                 </Paper>
               </div>
             ))}
@@ -147,4 +195,4 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
   );
 };
 
-export default OverviewTab; 
+export default OverviewTab;

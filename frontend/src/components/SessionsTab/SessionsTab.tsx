@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress } from '@mui/material';
+
 import { F1DataService } from '../../services/api/f1-data.service';
 import './SessionsTab.css';
 
@@ -34,7 +35,6 @@ const SessionsTab: React.FC<SessionsTabProps> = ({ selectedYear }) => {
         const response = await F1DataService.getSessions(selectedYear);
         setSessions(response);
       } catch (error) {
-        console.error('Error fetching sessions:', error);
         setError('Failed to fetch sessions');
       } finally {
         setIsLoading(false);
@@ -63,7 +63,7 @@ const SessionsTab: React.FC<SessionsTabProps> = ({ selectedYear }) => {
   return (
     <div className="sessions-container">
       <div className="sessions-grid">
-        {sessions.map((session) => (
+        {sessions.map(session => (
           <div key={session.id} className="session-card">
             <div className="session-header">
               <h3>{session.session_name}</h3>
@@ -102,4 +102,4 @@ const SessionsTab: React.FC<SessionsTabProps> = ({ selectedYear }) => {
   );
 };
 
-export default SessionsTab; 
+export default SessionsTab;

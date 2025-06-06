@@ -7,7 +7,9 @@ interface ErrorMessageProps {
 }
 
 const ErrorMessage: React.FC<ErrorMessageProps> = ({ error, onDismiss }) => {
-  if (!error) return null;
+  if (!error) {
+    return null;
+  }
 
   return (
     <div className="error-message">
@@ -24,4 +26,4 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({ error, onDismiss }) => {
   );
 };
 
-export default ErrorMessage; 
+export default ErrorMessage;

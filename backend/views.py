@@ -107,11 +107,10 @@ DROP_VIEWS_SQL = {
 def create_views(target, connection, **kw):
     """Creates views if they don't exist."""
     if not current_app.config.get("TESTING"):
-        with connection.begin() as trans:
-            for sql in DROP_VIEWS_SQL.values():
-                trans.execute(text(sql))
-            for sql in VIEWS_SQL.values():
-                trans.execute(text(sql))
+        for sql in DROP_VIEWS_SQL.values():
+            connection.execute(text(sql))
+        for sql in VIEWS_SQL.values():
+            connection.execute(text(sql))
 
 
 def register_view_creation(app):

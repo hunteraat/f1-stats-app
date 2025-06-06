@@ -1,8 +1,20 @@
 import React from 'react';
-import { Box, Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
+
 import { Driver, DriverSession } from '../../types/models';
 import './DriverDetails.css';
-import { getCountryFlagUrl } from '../../utils/flags';
+import { getCountryFlagUrl } from '../../utils/util';
 
 interface DriverDetailsProps {
   selectedDriver: Driver;
@@ -17,11 +29,19 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({
   driverSessions,
   isLoadingSessions,
   onBack,
-  backText
+  backText,
 }) => {
   const getRowClassName = (session: DriverSession) => {
-    if (session.final_position === 1 && session.session_type === 'Race') return 'win-row';
-    if (session.final_position !== null && session.final_position <= 3 && session.session_type === 'Race') return 'podium-row';
+    if (session.final_position === 1 && session.session_type === 'Race') {
+      return 'win-row';
+    }
+    if (
+      session.final_position !== null &&
+      session.final_position <= 3 &&
+      session.session_type === 'Race'
+    ) {
+      return 'podium-row';
+    }
     return '';
   };
 
@@ -30,11 +50,15 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({
       <Button variant="outlined" onClick={onBack} className="back-button">
         {backText}
       </Button>
-      
+
       <div className="driver-details-header">
         <h1>
           {selectedDriver.full_name}
-          <img className="country-flag" src={getCountryFlagUrl(selectedDriver.country_code)} alt={selectedDriver.country_code} />
+          <img
+            className="country-flag"
+            src={getCountryFlagUrl(selectedDriver.country_code)}
+            alt={selectedDriver.country_code}
+          />
         </h1>
         <h2>Driver for {selectedDriver.team_name}</h2>
       </div>
@@ -87,16 +111,22 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {driverSessions.map((session) => (
-                  <TableRow 
-                    key={session.full_name + session.session_name + session.location + session.date_start}
+                {driverSessions.map(session => (
+                  <TableRow
+                    key={
+                      session.full_name +
+                      session.session_name +
+                      session.location +
+                      session.date_start
+                    }
                     className={getRowClassName(session)}
                   >
                     <TableCell>{session.session_name}</TableCell>
                     <TableCell>{session.session_type}</TableCell>
                     <TableCell>{session.location}</TableCell>
                     <TableCell>
-                      {session.date_start && new Date(session.date_start).toLocaleDateString()}
+                      {session.date_start &&
+                        new Date(session.date_start).toLocaleDateString()}
                     </TableCell>
                     <TableCell>{session.final_position}</TableCell>
                     <TableCell>{session.points}</TableCell>
@@ -112,4 +142,4 @@ const DriverDetails: React.FC<DriverDetailsProps> = ({
   );
 };
 
-export default DriverDetails; 
+export default DriverDetails;

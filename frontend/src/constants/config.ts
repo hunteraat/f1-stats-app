@@ -7,13 +7,13 @@ export const API_CONFIG = {
     OVERVIEW: '/overview',
     SYNC: '/sync',
     CONSTRUCTORS: '/constructors',
-    AI: '/ai'
-  }
+    AI: '/ai',
+  },
 };
 
 export const APP_CONFIG = {
   DEFAULT_YEAR: 2025,
   MIN_YEAR: 2018,
   LOADING_MESSAGE: 'Loading F1 Statistics App...',
-  APP_SUBTITLE: 'Formula 1 driver data powered by OpenF1 API'
-}; 
+  APP_SUBTITLE: 'Formula 1 driver data powered by OpenF1 API',
+};

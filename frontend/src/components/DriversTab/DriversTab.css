@@ -27,6 +27,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  color: white;
 }
 
 .driver-card:hover {
@@ -44,26 +45,28 @@
 }
 
 .driver-top-stats {
-  position: relative;
   display: flex;
   justify-content: space-between;
-  z-index: 2;
+  align-items: center;
   padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
 }
 
 .points, .position {
-  background: var(--bg-tertiary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-sm);
   font-weight: bold;
-  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: 4px 8px;
   backdrop-filter: blur(4px);
+  z-index: 2;
 }
 
 .driver-info {
   position: relative;
   padding: var(--spacing-md);
-  background: var(--bg-primary-transparent);
+  background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
   z-index: 2;
 }
@@ -78,19 +81,16 @@
 .driver-name {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--text-primary);
   margin-bottom: var(--spacing-xs);
 }
 
 .driver-number {
   font-size: 1.2rem;
-  color: var(--text-primary);
   margin-left: var(--spacing-xs);
 }
 
 .team-name {
   font-size: 1rem;
-  color: var(--text-secondary);
 }
 
 .driver-stats {
@@ -103,11 +103,11 @@
 
 .stat-circle {
   flex: 1;
-  background: var(--accent-tertiary);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
-  border-radius: 50%;
+  border-radius: var(--border-radius-sm);
   aspect-ratio: 1;
-  max-width: 55px;
+  max-width: 60px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -118,23 +118,12 @@
 .stat-circle .stat-value {
   font-size: 1rem;
   font-weight: bold;
-  color: var(--text-primary);
 }
 
 .driver-team {
   color: var(--text-secondary);
   font-size: 0.875rem;
   margin-bottom: var(--spacing-sm);
-}
-
-.driver-position {
-  margin-bottom: var(--spacing-lg);
-}
-
-.position {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-lg);
-  text-align: center;
 }
 
 .champion {
@@ -154,87 +143,6 @@
 
 .below-ten {
   color: var(--text-secondary);
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--spacing-sm);
-  background: var(--bg-secondary);
-  border-radius: var(--border-radius-sm);
-}
-
-.stat .label {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-xs);
-}
-
-.stat .value {
-  font-size: 1rem;
-  font-weight: bold;
-  color: var(--text-primary);
-}
-
-.teams-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.team-container {
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
-  backdrop-filter: blur(10px);
-}
-
-.team-header {
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--accent-tertiary);
-}
-
-.team-header h3 {
-  margin: 0;
-  color: var(--accent-primary);
-}
-
-.team-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: var(--spacing-sm);
-}
-
-.constructor-position {
-  font-size: 0.9rem;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  background: var(--bg-secondary);
-}
-
-.constructor-position.champion {
-  background: var(--accent-primary);
-  color: var(--bg-primary);
-}
-
-.constructor-position.podium {
-  background: var(--accent-secondary);
-  color: var(--bg-primary);
-}
-
-.team-points {
-  color: var(--accent-primary);
-}
-
-.team-drivers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
-  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -281,7 +189,6 @@
   position: relative;
   background-size: cover;
   background-position: center;
-  opacity: 0.2;
   z-index: 0;
 }
 

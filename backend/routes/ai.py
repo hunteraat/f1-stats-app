@@ -16,10 +16,15 @@ def chat():
     """
     try:
         data = request.get_json()
-        message = data.get("message")
-        context_data = data.get("data")
+        messages = data.get("messages")
+        year = data.get("year")
 
-        response_content = ai_service.get_chat_completion(message, context_data)
+        if not messages:
+            return jsonify({"error": "Messages are required"}), 400
+        if not year:
+            return jsonify({"error": "Year is required"}), 400
+
+        response_content = ai_service.get_chat_completion(messages, year)
         return jsonify({"response": response_content})
 
     except ValueError as e:

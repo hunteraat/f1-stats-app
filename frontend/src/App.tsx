@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Box } from '@mui/material';
+
 import './App.css';
 import TabNavigation from './components/TabNavigation/TabNavigation';
 import OverviewTab from './components/OverviewTab/OverviewTab';
@@ -11,9 +11,13 @@ import { F1DataService } from './services/api/f1-data.service';
 import { TabTypes } from './constants/common-constants';
 
 const App: React.FC = () => {
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(
+    new Date().getFullYear()
+  );
   const [activeTab, setActiveTab] = useState<string>('overview');
-  const [availableYears, setAvailableYears] = useState<{ year: number; synced: boolean }[]>([]);
+  const [availableYears, setAvailableYears] = useState<
+    { year: number; synced: boolean }[]
+  >([]);
   const [isLoadingYears, setIsLoadingYears] = useState(true);
 
   // Fetch available years on mount
@@ -59,7 +63,9 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case TabTypes.OVERVIEW:
-        return <OverviewTab selectedYear={selectedYear} onTabChange={setActiveTab} />;
+        return (
+          <OverviewTab selectedYear={selectedYear} onTabChange={setActiveTab} />
+        );
       case TabTypes.DRIVERS:
         return <DriversTab selectedYear={selectedYear} />;
       case TabTypes.CONSTRUCTORS:
@@ -73,7 +79,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-        {/* Year Selector
+      {/* Year Selector
         <div className="app-header">
           <h1>F1 Statistics</h1>
           <YearSelector
@@ -85,11 +91,9 @@ const App: React.FC = () => {
         </div>
         */}
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <div className="app-content">
-        {renderContent()}
-      </div>
+      <div className="app-content">{renderContent()}</div>
     </div>
   );
 };
 
-export default App; 
+export default App;
