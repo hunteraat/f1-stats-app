@@ -1,5 +1,17 @@
-# Python
-backend/__pycache__/
+# ====================
+# ENVIRONMENT & CONFIG
+# ====================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# ====================
+# PYTHON / BACKEND
+# ====================
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -16,59 +28,190 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
-.env
-.venv
-env/
+MANIFEST.in
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.venv/
 venv/
-backend/venv/
 ENV/
+env/
+.env/
 env.bak/
 venv.bak/
-.python-version
+backend/venv/
+backend/.venv/
 
-# Node
+# Python testing & coverage
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask specific
+instance/
+.webassets-cache
+backend/instance/
+
+# ====================
+# NODE.JS / FRONTEND
+# ====================
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 .pnpm-debug.log*
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out/
+frontend/.next/
+frontend/out/
+
+# Nuxt.js build / generate output
+.nuxt
+frontend/.nuxt/
+
+# Gatsby files
+.cache/
+public
+frontend/.cache/
+frontend/public/
+
+# Vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Build outputs
+frontend/build/
+frontend/dist/
+backend/dist/
+
+# ====================
+# DEVELOPMENT TOOLS
+# ====================
 # IDEs and editors
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
+
+# OS generated files
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
 
-# Project specific
-backend/instance/
+# ====================
+# PROJECT SPECIFIC
+# ====================
+# Backend specific
 backend/logs/
+backend/migrations/versions/
+backend/__pycache__/
+
+# Frontend specific
+frontend/node_modules/
+
+# General logs
 *.log
-.coverage
-htmlcov/
-.pytest_cache/
-.mypy_cache/
+logs/
 
-# Build outputs
-frontend/build/
-frontend/dist/
-frontend/.next/
-frontend/out/
-
-# Dependencies
-.pnp/
-.pnp.js
-.yarn/install-state.gz 
+# Temporary files
+*.tmp
+*.temp 
