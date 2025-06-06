@@ -13,7 +13,6 @@ from models import (
     Position,
     Lap,
     YearData,
-    SessionKeyCache,
 )
 
 
@@ -119,6 +118,8 @@ async def _fetch_and_process_data(year, year_data):
         logger.info("Processing sessions...")
         _process_sessions(sessions_data, year)
 
+        _process_driver_sessions(drivers_data)
+
         logger.info("Processing positions and laps...")
         await _process_positions_and_laps(session, year, year_data)
 
@@ -127,64 +128,12 @@ async def _get_sessions_data(session, year, year_data):
     """Fetches session data from cache or API."""
     logger = current_app.logger
 
-    # Check if we need to get sessions based on incremental sync
-    is_current_year = year == datetime.now(timezone.utc).year
-    should_refresh_sessions = True
+    logger.info("Fetching sessions from API...")
+    sessions_data = await fetch_data_async(session, "sessions", {"year": year})
+    if not sessions_data:
+        return None
 
-    if is_current_year and year_data.last_incremental_sync:
-        # For current year with previous sync, check if we have recent cached sessions
-        recent_cached = SessionKeyCache.query.filter_by(year=year).all()
-        if recent_cached:
-            logger.info(
-                f"Using {len(recent_cached)} cached sessions for incremental sync"
-            )
-            should_refresh_sessions = False
-    else:
-        # For historical years, check if we have cached sessions
-        cached_sessions = SessionKeyCache.query.filter_by(year=year).all()
-        if cached_sessions:
-            logger.info(f"Using {len(cached_sessions)} cached sessions for {year}")
-            return [s.to_dict() for s in cached_sessions]
-
-    if should_refresh_sessions:
-        logger.info("Fetching sessions from API...")
-        sessions_data = await fetch_data_async(session, "sessions", {"year": year})
-        if not sessions_data:
-            return None
-
-        logger.info(f"Caching {len(sessions_data)} sessions for {year}")
-        for sess_data in sessions_data:
-            date_start = sess_data.get("date_start")
-            new_entry_data = {
-                "year": year,
-                "session_key": sess_data["session_key"],
-                "session_name": sess_data.get("session_name"),
-                "session_type": sess_data.get("session_type"),
-                "date_start": (
-                    make_aware(
-                        datetime.fromisoformat(date_start.replace("Z", "+00:00"))
-                    )
-                    if date_start
-                    else None
-                ),
-                "location": sess_data.get("location"),
-            }
-            existing_entry = SessionKeyCache.query.filter_by(
-                year=year, session_key=sess_data["session_key"]
-            ).first()
-            if existing_entry:
-                for key, value in new_entry_data.items():
-                    setattr(existing_entry, key, value)
-            else:
-                new_entry = SessionKeyCache(**new_entry_data)
-                db.session.add(new_entry)
-
-        db.session.commit()
-        return sessions_data
-    else:
-        # Return cached sessions for incremental sync
-        cached_sessions = SessionKeyCache.query.filter_by(year=year).all()
-        return [s.to_dict() for s in cached_sessions]
+    return sessions_data
 
 
 async def _get_drivers_data(session, year, sessions_data):
@@ -202,10 +151,25 @@ async def _get_drivers_data(session, year, sessions_data):
 
 def _process_drivers(drivers_data):
     """Upserts driver information into the database."""
-    unique_drivers = {
-        d["driver_number"]: d for d in drivers_data if d.get("driver_number")
-    }
-    for driver_data in unique_drivers.values():
+    unique_drivers_data = {}
+    for d in drivers_data:
+        driver_number = d.get("driver_number")
+        if not driver_number:
+            continue
+        if driver_number not in unique_drivers_data:
+            unique_drivers_data[driver_number] = {"driver_number": driver_number}
+
+        for key in [
+            "full_name",
+            "team_name",
+            "team_colour",
+            "country_code",
+            "headshot_url",
+        ]:
+            if d.get(key) is not None:
+                unique_drivers_data[driver_number][key] = d.get(key)
+
+    for driver_data in unique_drivers_data.values():
         driver = Driver.query.filter_by(
             driver_number=driver_data["driver_number"]
         ).first()
@@ -237,8 +201,65 @@ def _process_sessions(sessions_data, year):
             else None
         )
         session.session_type = session_data.get("session_type")
+        session.meeting_key = session_data.get("meeting_key")
         session.location = session_data.get("location")
         session.year = year
+    db.session.commit()
+
+
+def _process_driver_sessions(drivers_data):
+    """Creates driver_session records from driver data."""
+    logger = current_app.logger
+    logger.info("Processing driver sessions...")
+
+    driver_numbers = {
+        d.get("driver_number") for d in drivers_data if d.get("driver_number")
+    }
+    session_keys = {d.get("session_key") for d in drivers_data if d.get("session_key")}
+
+    if not driver_numbers or not session_keys:
+        logger.info("No driver numbers or session keys found in data to process.")
+        return
+
+    drivers = Driver.query.filter(Driver.driver_number.in_(driver_numbers)).all()
+    driver_map = {d.driver_number: d.id for d in drivers}
+
+    sessions = Session.query.filter(Session.session_key.in_(session_keys)).all()
+    session_map = {s.session_key: s.id for s in sessions}
+
+    processed_pairs = set()
+
+    for data in drivers_data:
+        driver_number = data.get("driver_number")
+        session_key = data.get("session_key")
+
+        if not driver_number or not session_key:
+            continue
+
+        pair = (driver_number, session_key)
+        if pair in processed_pairs:
+            continue
+        processed_pairs.add(pair)
+
+        driver_id = driver_map.get(driver_number)
+        session_id = session_map.get(session_key)
+
+        if not driver_id:
+            logger.warning(f"Driver {driver_number} not found in database.")
+            continue
+        if not session_id:
+            logger.warning(f"Session {session_key} not found in database.")
+            continue
+
+        # Check if DriverSession already exists to avoid duplicates
+        existing = DriverSession.query.filter_by(
+            driver_id=driver_id, session_id=session_id
+        ).first()
+
+        if not existing:
+            driver_session = DriverSession(driver_id=driver_id, session_id=session_id)
+            db.session.add(driver_session)
+
     db.session.commit()
 
 

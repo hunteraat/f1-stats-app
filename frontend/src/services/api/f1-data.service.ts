@@ -13,8 +13,11 @@ export class F1DataService extends BaseApiService {
   }
 
   static async getDriverSessions(driverNumber: number, year?: number): Promise<DriverSession[]> {
-    const params = year ? `?year=${year}` : '';
-    return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}/${driverNumber}/sessions${params}`);
+    let params = `?driver_number=${driverNumber}`;
+    if (year) {
+      params += `&year=${year}`;
+    }
+    return this.request(`${API_CONFIG.ENDPOINTS.DRIVERS}/sessions${params}`);
   }
 
   static async getSessions(year?: number): Promise<Session[]> {
@@ -37,7 +40,7 @@ export class F1DataService extends BaseApiService {
   }
 
   static async syncData(year: number): Promise<SyncResult> {
-    return this.request(`${API_CONFIG.ENDPOINTS.SYNC}/${year}`, {
+    return this.request(`${API_CONFIG.ENDPOINTS.SYNC}/data/${year}`, {
       method: 'POST',
     });
   }

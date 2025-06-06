@@ -18,18 +18,42 @@ const App: React.FC = () => {
 
   // Fetch available years on mount
   React.useEffect(() => {
-    const fetchYears = async () => {
+    const initialLoad = async () => {
       try {
+        // Fetch available years
         const years = await F1DataService.getAvailableYears();
         setAvailableYears(years);
+
+        // Check and sync data for the current year
+        const currentYear = new Date().getFullYear();
+        const syncStatus = await F1DataService.getSyncStatus(currentYear);
+        let shouldSync = false;
+
+        if (syncStatus.last_synced) {
+          const lastSyncedDate = new Date(syncStatus.last_synced);
+          const now = new Date();
+          const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+          if (now.getTime() - lastSyncedDate.getTime() > oneHour) {
+            shouldSync = true;
+          }
+        } else {
+          shouldSync = true; // Sync if never synced before
+        }
+
+        if (shouldSync) {
+          await F1DataService.syncData(currentYear);
+          // Refresh years after sync
+          const updatedYears = await F1DataService.getAvailableYears();
+          setAvailableYears(updatedYears);
+        }
       } catch (error) {
-        console.error('Error fetching available years:', error);
+        console.error('Error during initial load and sync:', error);
       } finally {
         setIsLoadingYears(false);
       }
     };
 
-    fetchYears();
+    initialLoad();
   }, []);
 
   const renderContent = () => {

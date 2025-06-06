@@ -5,6 +5,7 @@ from flask import Flask, jsonify
 
 from extensions import db, migrate, cors
 from config import config
+from views import register_view_creation
 
 
 def setup_logging(app):
@@ -79,6 +80,9 @@ def create_app(config_data=None):
 
     # Register blueprints
     register_blueprints(app)
+
+    # Register view creation event listener
+    register_view_creation(app)
 
     @app.route("/")
     def home():

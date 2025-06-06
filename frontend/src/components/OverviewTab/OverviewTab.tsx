@@ -19,8 +19,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const aiChatService = AIChatService.getInstance();
-
   useEffect(() => {
     const fetchStats = async () => {
       setIsLoading(true);
@@ -44,7 +42,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({ selectedYear, onTabChange }) 
 
     setIsProcessing(true);
     try {
-      const response = await aiChatService.sendMessage(aiQuestion, selectedYear);
+      const response = await AIChatService.sendMessage(aiQuestion, selectedYear);
       setChatMessages(prev => [
         { role: 'assistant', content: response },
         { role: 'user', content: aiQuestion },

@@ -158,31 +158,9 @@ class YearData(db.Model):
         }
 
 
-class SessionKeyCache(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    year = db.Column(db.Integer, nullable=False)
-    session_key = db.Column(db.String(100), nullable=False)
-    session_name = db.Column(db.String(100))
-    session_type = db.Column(db.String(50))
-    date_start = db.Column(db.DateTime)
-    location = db.Column(db.String(100))
-
-    __table_args__ = (
-        db.UniqueConstraint("year", "session_key", name="unique_session_key_per_year"),
-    )
-
-    def to_dict(self):
-        return {
-            "session_key": self.session_key,
-            "session_name": self.session_name,
-            "session_type": self.session_type,
-            "date_start": self.date_start.isoformat() if self.date_start else None,
-            "location": self.location,
-        }
-
-
 class ConstructorStats(db.Model):
     __tablename__ = "constructor_stats"
+    __table_args__ = {"info": dict(is_view=True)}
 
     team_name = db.Column(db.String(50), nullable=False, primary_key=True)
     team_colour = db.Column(db.String(7), nullable=True)
@@ -193,8 +171,6 @@ class ConstructorStats(db.Model):
     fastest_laps = db.Column(db.Integer, default=0)
     races = db.Column(db.Integer, default=0)
     year = db.Column(db.Integer, nullable=False, primary_key=True)
-
-    __table_args__ = (db.UniqueConstraint("team_name", "year"),)
 
     def to_dict(self):
         return {
@@ -212,6 +188,7 @@ class ConstructorStats(db.Model):
 
 class DriverStats(db.Model):
     __tablename__ = "driver_stats"
+    __table_args__ = {"info": dict(is_view=True)}
 
     driver_number = db.Column(db.Integer, nullable=False, primary_key=True)
     full_name = db.Column(db.String(100), nullable=False)
@@ -228,8 +205,6 @@ class DriverStats(db.Model):
     average_position = db.Column(db.Float, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     year = db.Column(db.Integer, nullable=False, primary_key=True)
-
-    __table_args__ = (db.UniqueConstraint("driver_number", "year"),)
 
     def to_dict(self):
         return {
@@ -253,6 +228,7 @@ class DriverStats(db.Model):
 
 class DriverSessionStats(db.Model):
     __tablename__ = "driver_session_stats"
+    __table_args__ = {"info": dict(is_view=True)}
 
     driver_number = db.Column(db.Integer, nullable=False, primary_key=True)
     full_name = db.Column(db.String(100), nullable=False)
@@ -265,12 +241,6 @@ class DriverSessionStats(db.Model):
     fastest_lap = db.Column(db.Boolean, default=False)
     points = db.Column(db.Integer, default=0)
     year = db.Column(db.Integer, nullable=False, primary_key=True)
-
-    __table_args__ = (
-        db.UniqueConstraint(
-            "driver_number", "session_name", "session_type", "date_start", "year"
-        ),
-    )
 
     def to_dict(self):
         return {

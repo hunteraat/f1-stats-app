@@ -13,6 +13,7 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+    OPENF1_BASE_URL = "https://api.openf1.org/v1"
 
     @staticmethod
     def init_app(app):
@@ -25,7 +26,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL"
-    ) or "sqlite:///" + os.path.join(basedir, "../instance/f1_stats_dev.db")
+    ) or "sqlite:///" + os.path.join(basedir, "./instance/f1_stats_dev.db")
 
 
 class TestingConfig(Config):
@@ -43,7 +44,7 @@ class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL"
-    ) or "sqlite:///" + os.path.join(basedir, "../instance/f1_stats.db")
+    ) or "sqlite:///" + os.path.join(basedir, "./instance/f1_stats.db")
 
 
 config = {
@@ -52,13 +53,6 @@ config = {
     "production": ProductionConfig,
     "default": DevelopmentConfig,
 }
-
-# API Configuration
-OPENF1_BASE_URL = "https://api.openf1.org/v1"
-
-# Database Configuration
-SQLALCHEMY_DATABASE_URI = "sqlite:///f1_stats.db"
-SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # CORS Configuration
 CORS_HEADERS = {

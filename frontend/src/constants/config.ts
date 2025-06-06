@@ -6,7 +6,8 @@ export const API_CONFIG = {
     SESSIONS: '/sessions',
     OVERVIEW: '/overview',
     SYNC: '/sync',
-    CONSTRUCTORS: '/constructors'
+    CONSTRUCTORS: '/constructors',
+    AI: '/ai'
   }
 };
 
