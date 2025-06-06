@@ -1,7 +1,7 @@
 """Remove cached columns from YearData
 
 Revision ID: a6378e08b7e5
-Revises: 
+Revises:
 Create Date: 2025-05-26 00:55:37.906661
 
 """
